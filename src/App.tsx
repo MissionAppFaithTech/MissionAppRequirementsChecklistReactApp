@@ -157,7 +157,7 @@ function App() {
     <div className="app">
       <header className="topbar">
         <a className="brand" href="#conteudo" aria-label="Ir para o conteúdo principal">
-          <span className="brand-mark">M</span>
+          <img src="/logo.png" alt="Mission App Logo" className="brand-logo" />
           <span className="brand-copy"><span className="brand-name">Mission App</span><span className="brand-caption">Atlas de requisitos</span></span>
         </a>
         <div className="top-actions">
