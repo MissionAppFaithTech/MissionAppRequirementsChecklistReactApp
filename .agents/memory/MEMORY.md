@@ -1,1 +1,0 @@
-- [Mission App checklist](mission-app-checklist.md) — keep requirement tracking browser-local and frontend-only, with independent nested checkboxes.
