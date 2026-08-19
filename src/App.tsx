@@ -190,6 +190,11 @@ function App() {
             <h1>Especificação de requisitos do <em>Mission App</em></h1>
             <p className="hero-lede">Uma plataforma para conscientizar igrejas sobre o trabalho missionário realizado ao redor do mundo através de campanhas recorrentes, conexões e projetos de impacto.</p>
             <div className="hero-meta"><span>Última revisão: 06 mar 2025</span><a href="https://github.com/MissionAppFaithTech" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://www.figma.com/design/uMAwJPYKaEoN7ScjAmgZ6O/Mission-app" target="_blank" rel="noreferrer">Design no Figma ↗</a></div>
+            <div className="hero-site-link">
+              <span>Site com todos os requisitos especificados e detalhados:</span>
+              <br />
+              <a href="https://missionappfaithtech.github.io/MissionAppRequirementsList/" target="_blank" rel="noreferrer">https://missionappfaithtech.github.io/MissionAppRequirementsList/ ↗</a>
+            </div>
           </section>
           <section className="summary-card" aria-label="Resumo do checklist">
             <div className="summary-ring" style={{ '--percent': progress.percent } as CSSProperties}><strong>{progress.percent}%</strong></div>
