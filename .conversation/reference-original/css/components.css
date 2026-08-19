@@ -1,0 +1,116 @@
+.callout {
+  border-left: 4px solid #cccccc;
+  border-radius: 4px;
+  margin: 1.5em 0;
+  padding: 12px 16px;
+}
+
+.callout-title {
+  font-size: 1.05em;
+  font-weight: 700;
+  margin-bottom: 0.5em;
+}
+
+.callout-important {
+  border-color: #e02424;
+  background-color: #fdf2f2;
+  color: #9b1c1c;
+}
+
+.callout-note {
+  border-color: #1c64f2;
+  background-color: #ebf5ff;
+  color: #1e429f;
+}
+
+.callout-tip {
+  border-color: #0e9f6e;
+  background-color: #f3faf7;
+  color: #03543f;
+}
+
+.callout-warning {
+  border-color: #d03801;
+  background-color: #feecdc;
+  color: #92400e;
+}
+
+#btn-top-container {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+#btn-top-container.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+#btn-top {
+  display: flex;
+  width: 50px;
+  height: 50px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 1.35rem;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#btn-top:hover {
+  background-color: var(--color-accent);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px);
+}
+
+#btn-top:active {
+  transform: translateY(0);
+}
+
+#btn-top-tooltip {
+  position: relative;
+  margin-right: 15px;
+  border-radius: 8px;
+  background-color: #1e293b;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  opacity: 0;
+  padding: 10px 16px;
+  transform: translateX(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+#btn-top-container:hover #btn-top-tooltip,
+#btn-top-tooltip.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+#btn-top-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  border-width: 6px 0 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent transparent #1e293b;
+  transform: translateY(-50%);
+}

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Mission App Requirements"
+description = "Aplicação frontend aberta para acompanhar requisitos do Mission App, reproduzindo a experiência do site original e oferecendo checklist local para requisitos e sub-requisitos."
+version = "1.0.0"
+id = "artifacts/mission-app-requirements"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23110
+
+[services.development]
+run = "pnpm --filter @workspace/mission-app-requirements run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mission-app-requirements", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/mission-app-requirements/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23110"
+BASE_PATH = "/"

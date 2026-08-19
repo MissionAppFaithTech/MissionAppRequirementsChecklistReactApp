@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.6.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Especificação de Requisitos do Mission App</title>
+  <link rel="icon" type="image/png" href="img/MissionAppLogo.png">
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/content.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+  <button class="mobile-menu-button" type="button" data-menu-toggle aria-controls="doc-sidebar" aria-expanded="false">
+    ☰ Sumário
+  </button>
+
+  <div class="site-shell">
+    <aside class="doc-sidebar" id="doc-sidebar" aria-label="Sumário dos requisitos">
+      <div class="sidebar-brand">
+        <img src="img/MissionAppLogo.png" alt="Logo do Mission App">
+        <div>
+          <span class="sidebar-title">Mission App</span>
+          <span class="sidebar-subtitle">Especificação de requisitos</span>
+        </div>
+      </div>
+      <div class="sidebar-search">
+        <label class="sr-only" for="doc-search">Buscar requisito</label>
+        <input id="doc-search" type="search" placeholder="Buscar requisito..." autocomplete="off">
+      </div>
+      <nav class="sidebar-nav" id="requirements-nav" aria-label="Navegação dos requisitos">
+  <h2 id="sumario">📊 Sumário dos Requisitos</h2>
+  <h3>📌 Requisitos Funcionais</h3>
+  <ul>
+    <li><a href="#rf-1">1. Autenticação e Acesso</a></li>
+    <li><a href="#rf-2">2. Cadastro de Apoiador</a></li>
+    <li><a href="#rf-3">3. Cadastro de Missionário</a></li>
+    <li><a href="#rf-4">4. Papéis e Privilégios do
+        Missionário</a></li>
+    <li><a href="#rf-5">5. Papéis e Privilégios do Apoiador</a></li>
+    <li><a href="#rf-6">6. Barra de Navegação (NavBar)</a></li>
+    <li><a href="#rf-7">7. Busca e Filtragem</a></li>
+    <li><a href="#rf-8">8. Postagens</a></li>
+    <li><a href="#rf-9">9. Projetos de Impacto</a></li>
+    <li><a href="#rf-10">10. Perfil do Missionário</a></li>
+    <li><a href="#rf-11">11. Perfil do Apoiador</a></li>
+    <li><a href="#rf-12">12. Área de Doações</a></li>
+    <li><a href="#rf-13">13. Campanhas de Divulgação</a></li>
+    <li><a href="#rf-14">14. Seção (ou Aba) de Projetos de Impacto</a></li>
+    <li><a href="#rf-15">15. Configurações de Conta</a></li>
+    <li><a href="#rf-16">16. Sistema de Denúncias</a></li>
+    <li><a href="#rf-17">17. Administração do Sistema</a></li>
+    <li><a href="#rf-18">18. Painel Administrativo</a></li>
+    <li><a href="#rf-19">19. Histórico de Campanhas</a></li>
+  </ul>
+  <h3>🔒 Requisitos Não Funcionais</h3>
+  <ul>
+    <li><strong><a href="#rnf-1">1. Segurança (NF.1)</a></strong>
+      <ul>
+        <li><a href="#rnf-1-1">1.1 Criptografia de Dados Sensíveis (NF 1.1)</a></li>
+        <li><a href="#rnf-1-2">1.2 Conformidade com a LGPD (NF 1.2)</a></li>
+        <li><a href="#rnf-1-3">1.3 Proteção contra Ataques de Força Bruta (NF 1.3)</a></li>
+        <li><a href="#rnf-1-4">1.4 Comunicação Segura (NF 1.4)</a></li>
+      </ul>
+    </li>
+    <li><strong><a href="#rnf-2">2. Desempenho (NF.2)</a></strong>
+      <ul>
+        <li><a href="#rnf-2-1">2.1 Otimização de Imagens (NF 2.1)</a></li>
+        <li><a href="#rnf-2-2">2.2 Tempo de Carregamento (NF 2.2)</a></li>
+        <li><a href="#rnf-2-3">2.3 Paginação e Lazy Loading (NF 2.3)</a></li>
+        <li><a href="#rnf-2-4">2.4 Caching de Alto Volume (NF 2.4)</a></li>
+        <li><a href="#rnf-2-5">2.5 Escalabilidade (NF 2.5)</a></li>
+      </ul>
+    </li>
+    <li><strong><a href="#rnf-3">3. Usabilidade (NF.3)</a></strong>
+      <ul>
+        <li><a href="#rnf-3-1">3.1 Feedback Visual do Sistema (NF 3.1)</a></li>
+      </ul>
+    </li>
+    <li><strong><a href="#rnf-4">4. Manutenibilidade (NF.4)</a></strong>
+      <ul>
+        <li><a href="#rnf-4-1">4.1 Arquitetura Evolutiva (NF 4.1)</a></li>
+        <li><a href="#rnf-4-2">4.2 Documentação da API (NF 4.2)</a></li>
+        <li><a href="#rnf-4-3">4.3 Monitoramento de Erros (NF 4.3)</a></li>
+        <li><a href="#rnf-4-4">4.4 Alertas de Erro (NF 4.4)</a></li>
+        <li><a href="#rnf-4-5">4.5 Traçabilidade – LGPD (NF 4.5)</a></li>
+      </ul>
+    </li>
+    <li><strong><a href="#rnf-5">5. Confiabilidade (NF.5)</a></strong>
+      <ul>
+        <li><a href="#rnf-5-1">5.1 Disponibilidade – Uptime (NF 5.1)</a></li>
+        <li><a href="#rnf-5-2">5.2 Integridade Transacional – Atomicidade (NF 5.2)</a></li>
+        <li><a href="#rnf-5-3">5.3 Integridade de E-mails (NF 5.3)</a></li>
+      </ul>
+    </li>
+    <li><strong><a href="#rnf-6">6. Portabilidade (NF.6)</a></strong>
+      <ul>
+        <li><a href="#rnf-6-1">6.1 Responsividade Móvel (NF 6.1)</a></li>
+      </ul>
+    </li>
+  </ul>
+        <p class="search-empty" id="search-empty">Nenhum requisito encontrado.</p>
+      </nav>
+    </aside>
+    <div class="sidebar-overlay" data-sidebar-overlay></div>
+    <main class="doc-content" id="conteudo">
+  <header class="page-header">
+    <img class="page-logo" src="img/MissionAppLogo.png" alt="Logo do Mission App">
+    <h1>Especificação de Requisitos do Mission App</h1>
+  </header>
+  <blockquote>
+    <p>Plataforma para conscientizar Igrejas do trabalho missionário realizado ao redor do mundo através
+      de Campanhas Missionárias recorrentes.</p>
+    <p><strong>Links:</strong> <a href="https://github.com/MissionAppFaithTech" target="_blank"
+        rel="noopener noreferrer">GitHub</a> | <a
+        href="https://www.figma.com/design/uMAwJPYKaEoN7ScjAmgZ6O/Mission-app?node-id=902-4759&p=f&t=JOHO8mUWnhJbfhKs-0"
+        target="_blank" rel="noopener noreferrer">Design Figma</a></p>
+  </blockquote>
+  <hr>
+  <h2>📌 Requisitos Funcionais</h2>
+  <h3 id="rf-1"><strong>1. Autenticação e Acesso</strong></h3>
+  <h4><strong>1.1 Login (RF 1.1)</strong></h4>
+  <p>O sistema deve permitir que usuários (apoiadores, missionários e
+    administradores) acessem suas contas utilizando credenciais de
+    e-mail e senha previamente cadastradas.</p>
+  <h4><strong>1.2 Redefinição de Senha (RF 1.2)</strong></h4>
+  <p>O sistema deve prover um fluxo de recuperação de acesso
+    ("esqueci minha senha") onde o usuário informa seu e-mail e recebe
+    um link seguro para definir uma nova senha.</p>
+  <h4><strong>1.3 Aprovação de Cadastro (RF 1.3)</strong></h4>
+  <p>O perfil de Administrador deve possuir uma área exclusiva para
+    visualizar solicitações de cadastro de missionários. O acesso do
+    missionário ao sistema só deve ser liberado após a aprovação manual
+    realizada nesta área.</p>
+  <h4><strong>1.4 Acesso sem Autenticação em Rotas Públicas (RF
+      1.4)</strong></h4>
+  <p>O sistema deve permitir que usuários não autenticados acessem
+    rotas públicas com <strong>privilégios apenas de leitura</strong>.
+    As rotas públicas devem ser as que contêm ações relacionadas às
+    atividades abaixo:</p>
+  <ul>
+    <li>Perfil do missionário</li>
+    <li>Perfil de um usuário comum</li>
+    <li>Área de doação (apenas visão de um usuário comum)</li>
+    <li>Projetos de um missionário</li>
+    <li>Pesquisar perfis</li>
+  </ul>
+  <h5><strong>1.4.1 Fluxo de Visitantes e Alertas (RF
+      1.4.1)</strong></h5>
+  <p>O usuário não autenticado deve ter exibido na página um botão
+    pedindo para que se cadastre. Além disso, ao tentar acessar uma
+    rota que exige autenticação (como dar Likes em postagens), o
+    usuário deve receber um alerta pedindo para que ele se
+    cadastre.</p>
+  <figure>
+    <img src="img/MissionAppSemCadastro.png"
+      alt="Tela do Mission App para usuário não autenticado e alerta de cadastro">
+    <figcaption>Figura 1.4.1: Interface do Mission App exibindo a tela de um usuário visitante não autenticado.
+    </figcaption>
+  </figure>
+  <h4><strong>1.5 Acesso com Autenticação (RF 1.5)</strong></h4>
+  <p>O sistema deve permitir que usuários autenticados acessem as
+    rotas com todos os seus respectivos privilégios.</p>
+  <h3 id="rf-2"><strong>2. Cadastro de Apoiador</strong></h3>
+  <h4><strong>2.1 Cadastro de Apoiador (RF 2.1)</strong></h4>
+  <p>O sistema deve permitir o auto-cadastro de usuários apoiadores,
+    solicitando dados pessoais, de contato e informações sobre sua
+    comunidade de fé. As informações são:</p>
+  <ul>
+    <li>Email;</li>
+    <li>Senha;</li>
+    <li>Nome de Usuário;</li>
+    <li>Nome Completo;</li>
+    <li>Data de Nascimento;</li>
+    <li>Gênero;</li>
+    <li>Telefone;</li>
+    <li>Comunidade de Fé <strong>(opcional)</strong>:
+      <ul>
+        <li>O campo deve ser um seletor com busca, no qual o usuário
+          apoiador digita o nome de sua comunidade de fé e o sistema
+          sugere, em tempo real, as comunidades já cadastradas na
+          plataforma.</li>
+        <li>Caso exista a comunidade de fé no banco de dados, o usuário
+          apoiador simplesmente seleciona esta.</li>
+        <li>Caso a busca não retorne nenhuma correspondência, o sistema
+          deve exibir o estado vazio “Nenhum resultado encontrado”
+          acompanhado do botão “Adicionar nova Comunidade de Fé”.</li>
+        <li>Ao clicar no botão “Adicionar nova Comunidade de Fé”, o
+          sistema deve abrir um modal de cadastro de comunidade de fé
+          contendo:
+          <ul>
+            <li>Nome da Comunidade de Fé (Obrigatório);</li>
+            <li>Endereço 1 (Opcional);</li>
+            <li>Endereço 2 (Opcional);</li>
+            <li>País (Obrigatório);</li>
+            <li>Estado/Província (Obrigatório);</li>
+            <li>Cidade (Obrigatório);</li>
+            <li>CEP ou Código Postal (Opcional);</li>
+            <li>Website (Opcional);</li>
+            <li>Nome do Pastor (Obrigatório);</li>
+            <li>Telefone do Pastor (Opcional);</li>
+            <li>Telefone da Comunidade de Fé (Opcional).</li>
+          </ul>
+        </li>
+        <li>O modal deve manter o botão de confirmação (“Adicionar
+          Comunidade de Fé”) desabilitado enquanto houver algum campo
+          obrigatório não preenchido, exibir a validação logo abaixo de
+          cada campo obrigatório em branco (por exemplo, “Nome é
+          obrigatório”) e oferecer um botão “Cancelar”, que fecha o modal
+          sem salvar os dados digitados.</li>
+        <li>Após a confirmação, a comunidade de fé deve ser persistida,
+          ficar imediatamente disponível na busca para os demais usuários
+          da plataforma e ser automaticamente selecionada no cadastro em
+          andamento.</li>
+        <li><em>Consulte o fluxo de referência no link:</em> <a
+            href="https://app.globalswitchboard.io/kc-creation/personal"
+            target="_blank" rel="noopener noreferrer">Cadastro de
+            Comunidade de Fé e Agência Missionária</a></li>
+      </ul>
+    </li>
+  </ul>
+  <h4><strong>2.3 Gerenciamento de Perfil do Apoiador (RF
+      2.3)</strong></h4>
+  <ul>
+    <li>Os usuários apoiadores devem poder visualizar e editar suas
+      informações cadastrais (Nome, Minibiografia, Comunidade de
+      Fé).</li>
+    <li>O sistema deve permitir o envio (upload) de uma foto de perfil,
+      aplicando compressão automática para otimização.</li>
+    <li>O sistema deve validar se o "Nome de Usuário" escolhido é único
+      em toda a plataforma.</li>
+  </ul>
+  <h3 id="rf-3"><strong>3. Cadastro de Missionário</strong></h3>
+  <h4><strong>3.1 Cadastrar Missionário (RF 3.1)</strong></h4>
+  <h5><strong>3.1.1 Informações necessárias para o cadastro de um
+      missionário</strong></h5>
+  <ul>
+    <li><strong>Dados:</strong>
+      <ul>
+        <li>Email;</li>
+        <li>Telefone pessoal do missionário;</li>
+        <li>Nome de usuário;</li>
+        <li>Nome Completo;</li>
+        <li>Data de Nascimento;</li>
+        <li>Gênero;</li>
+        <li>Telefone;</li>
+        <li>CPF ou Passaporte;</li>
+        <li>Breve descrição sobre projeto ou atuação missionária;</li>
+        <li>Comunidade de Fé:
+          <ul>
+            <li>O campo deve ser um seletor com busca, no qual o
+              missionário digita o nome de sua comunidade de fé e o
+              sistema sugere, em tempo real, as comunidades já
+              cadastradas na plataforma.</li>
+            <li>Caso exista a comunidade de fé no banco de dados, o
+              missionário simplesmente seleciona esta.</li>
+            <li>Caso a busca não retorne nenhuma correspondência, o
+              sistema deve exibir o estado vazio “Nenhum resultado
+              encontrado” acompanhado do botão “Adicionar nova Comunidade
+              de Fé”.</li>
+            <li>Ao clicar no botão “Adicionar nova Comunidade de Fé”, o
+              sistema deve abrir um modal de cadastro de comunidade de fé
+              contendo:
+              <ul>
+                <li>Nome da Comunidade de Fé (Obrigatório);</li>
+                <li>Endereço 1 (Opcional);</li>
+                <li>Endereço 2 (Opcional);</li>
+                <li>País (Obrigatório);</li>
+                <li>Estado/Província (Obrigatório);</li>
+                <li>Cidade (Obrigatório);</li>
+                <li>CEP ou Código Postal (Opcional);</li>
+                <li>Website (Opcional);</li>
+                <li>Nome do Pastor (Obrigatório);</li>
+                <li>Telefone do Pastor (Opcional);</li>
+                <li>Telefone da Comunidade de Fé (Opcional).</li>
+              </ul>
+            </li>
+            <li>O modal deve manter o botão de confirmação (“Adicionar
+              Comunidade de Fé”) desabilitado enquanto houver algum campo
+              obrigatório não preenchido, exibir a validação logo abaixo
+              de cada campo obrigatório em branco (por exemplo, “Nome é
+              obrigatório”) e oferecer um botão “Cancelar”, que fecha o
+              modal sem salvar os dados digitados.</li>
+            <li>Após a confirmação, a comunidade de fé deve ser
+              persistida, ficar imediatamente disponível na busca para os
+              demais usuários da plataforma e ser automaticamente
+              selecionada no cadastro em andamento.</li>
+            <li><em>Consulte o fluxo de referência no link:</em> <a
+                href="https://app.globalswitchboard.io/kc-creation/personal"
+                target="_blank" rel="noopener noreferrer">Cadastro de
+                Comunidade de Fé e Agência Missionária</a></li>
+          </ul>
+        </li>
+        <li>Nome do Pastor;</li>
+        <li>Telefone do Pastor (Obrigatório);</li>
+        <li>Telefone da Igreja ou responsável pela igreja
+          (Obrigatório);</li>
+        <li>Agência Missionária (Obrigatório);</li>
+        <li>Telefone de contato com a Agência Missionária
+          (Obrigatório).</li>
+      </ul>
+    </li>
+  </ul>
+  <h5><strong>3.1.2 Agências missionárias:</strong></h5>
+  <p>O campo de Agência Missionária deve seguir o mesmo fluxo da
+    Comunidade de Fé: um seletor com busca, no qual o missionário
+    escreve o nome de sua agência e seleciona uma dentre as previamente
+    cadastradas.</p>
+  <ul>
+    <li>Caso a busca não retorne nenhuma correspondência, o sistema deve
+      exibir o estado vazio “Nenhum resultado encontrado” acompanhado do
+      botão “Adicionar nova Agência Missionária”.</li>
+    <li>Ao clicar no botão “Adicionar nova Agência Missionária”, o
+      sistema deve abrir um modal de cadastro de agência contendo:
+      <ul>
+        <li>Nome da Agência Missionária (Obrigatório);</li>
+        <li>Endereço 1 (Opcional);</li>
+        <li>Endereço 2 (Opcional);</li>
+        <li>País (Obrigatório);</li>
+        <li>Estado/Província (Obrigatório);</li>
+        <li>Cidade (Obrigatório);</li>
+        <li>CEP ou Código Postal (Opcional);</li>
+        <li>Website (Opcional);</li>
+        <li>Telefone de contato com a Agência Missionária
+          (Obrigatório).</li>
+      </ul>
+    </li>
+    <li>O modal deve manter o botão de confirmação (“Adicionar Agência
+      Missionária”) desabilitado enquanto houver algum campo obrigatório
+      não preenchido, exibir a validação logo abaixo de cada campo
+      obrigatório em branco (por exemplo, “Nome é obrigatório”) e
+      oferecer um botão “Cancelar”, que fecha o modal sem salvar os
+      dados digitados.</li>
+    <li>Após a confirmação, a agência missionária deve ser persistida,
+      ficar imediatamente disponível na busca para os demais usuários da
+      plataforma e ser automaticamente selecionada no cadastro em
+      andamento.</li>
+    <li><em>Consulte o fluxo de referência no link:</em> <a
+        href="https://app.globalswitchboard.io/kc-creation/personal"
+        target="_blank" rel="noopener noreferrer">Cadastro de Comunidade
+        de Fé e Agência Missionária</a></li>
+  </ul>
+  <h5><strong>3.1.3 Gerenciamento de Perfil do Missionário (RF
+      3.3)</strong></h5>
+  <ul>
+    <li>Os usuários missionários devem poder visualizar e editar suas
+      informações cadastrais (Nome, Minibiografia, Comunidade de
+      Fé).</li>
+    <li>O sistema deve permitir o envio (upload) de uma foto de perfil,
+      aplicando compressão automática para otimização.</li>
+    <li>O sistema deve validar se o "Nome de Usuário" escolhido é único
+      em toda a plataforma.</li>
+  </ul>
+  <h4><strong>3.2 Email de Verificação do Missionário (RF
+      3.2)</strong></h4>
+  <p>O missionário deve verificar o email enviado para o seu email
+    utilizado no cadastro. O email deve ser verificado em um prazo de
+    até 7 dias. Caso contrário, o seu cadastro deve ser deletado.</p>
+  <h4><strong>3.3 Email de Alerta para o Administrador (RF
+      3.3)</strong></h4>
+  <p>O administrador recebe um e-mail com as informações do novo
+    missionário cadastrado, somente após o missionário confirmar o seu
+    email de verificação.</p>
+  <h4><strong>3.4 Aprovação do Administrador (RF 3.4)</strong></h4>
+  <p>O administrador faz a aprovação pelo painel de gerenciamento de
+    missionários.</p>
+  <h4><strong>3.5 Primeiro Login do Missionário (RF
+      3.5)</strong></h4>
+  <p>Ao fazer login na plataforma, o missionário deve completar seu
+    cadastro com as informações importantes na bio, conforme
+    especificado no <strong>RF 10.5 (Edição do Cabeçalho)</strong>.</p>
+  <h3 id="rf-4"><strong>4. Papéis e Privilégios do
+      Missionário</strong></h3>
+  <h4><strong>4.1 Gerenciamento de Identidade e Perfil do
+      Missionário (RF 4.1)</strong></h4>
+  <p>O usuário com perfil de "Missionário" possui uma página dedicada
+    e tem permissão para gerenciar integralmente sua apresentação na
+    plataforma:</p>
+  <h5><strong>4.1.1 Edição de Cabeçalho (RF 4.1.1)</strong></h5>
+  <p>Permissão para personalizar a foto de perfil (avatar), nome de
+    exibição e minibiografia.</p>
+  <h5><strong>4.1.2 Edição de Conta (RF 4.1.2)</strong></h5>
+  <p>Acesso à área de configuração privada para atualização de dados
+    sensíveis (e-mail, senha) e dados eclesiásticos (comunidade de fé e
+    pastor responsável).</p>
+  <h4><strong>4.2 Gestão de Projetos e Conteúdo do Missionário (RF 4.2)</strong></h4>
+  <h5><strong>4.2.1 Projetos de Impacto (RF 4.2.1)</strong></h5>
+  <p>O missionário tem o privilégio exclusivo de criar, editar e
+    excluir "Projetos de Impacto", que servem como vitrine principal
+    para sua causa.</p>
+  <h5><strong>4.2.2 Criação de Postagens (RF 4.2.2)</strong></h5>
+  <p>Permissão para criar publicações (com imagem e legenda) para
+    comunicar atualizações do campo missionário aos seus
+    seguidores.</p>
+  <h4><strong>4.3 Configuração Financeira (Recebimento de Doações)
+      (RF 4.3)</strong></h4>
+  <h5><strong>4.3.1 Área de Doações (RF 4.3.1)</strong></h5>
+  <p>O missionário deve ter acesso a uma área de configuração para
+    definir como deseja receber recursos.</p>
+  <h5><strong>4.3.2 Métodos de Recebimento (RF 4.3.2)</strong></h5>
+  <p>O sistema deve permitir que o missionário cadastre e edite suas
+    chaves PIX e dados para Transferência Bancária, tornando essas
+    informações acessíveis aos apoiadores no momento da doação.</p>
+  <h4><strong>4.4 Interação Social e Consumo de Conteúdo do
+      Missionário (RF 4.4)</strong></h4>
+  <h5><strong>4.4.1 Rede de Conexões (RF 4.4.1)</strong></h5>
+  <p>O missionário pode "Seguir" outros missionários para acompanhar
+    seus ministérios.</p>
+  <h5><strong>4.4.2 Visualização de Feeds (RF 4.4.2)</strong></h5>
+  <p>O sistema deve fornecer duas visões de timeline para o
+    missionário:</p>
+  <ul>
+    <li><strong>Feed Pessoal:</strong> Visualização cronológica de suas
+      próprias postagens.</li>
+    <li><strong>Feed de Amigos/Conexões:</strong> Visualização das
+      postagens realizadas pelos usuários que ele segue.</li>
+  </ul>
+  <h4><strong>4.5 Ferramentas de Busca e Descoberta do Missionário
+      (RF 4.5)</strong></h4>
+  <h5><strong>4.5.1 Pesquisa Global (RF 4.5.1)</strong></h5>
+  <p>Acesso à ferramenta de busca para localizar especificamente
+    outros usuários (apoiadores ou missionários) e projetos na
+    plataforma.</p>
+  <h5><strong>4.5.2 Exploração (RF 4.5.2)</strong></h5>
+  <p>Acesso à aba "Projetos de Impacto", permitindo que o
+    missionário conheça outras iniciativas e expanda sua rede de
+    intercessão e cooperação.</p>
+  <h3 id="rf-5"><strong>5. Papéis e Privilégios do
+      Apoiador</strong></h3>
+  <h4><strong>5.1 Gerenciamento de Perfil e Conta do Apoiador (RF 5.1)</strong></h4>
+  <p>O usuário com perfil de "Apoiador" possui uma área pessoal na
+    plataforma e permissões para gerenciar seus dados:</p>
+  <h5><strong>5.1.1 Edição de Cabeçalho (RF 5.1.1)</strong></h5>
+  <p>Acesso para personalizar informações públicas básicas, como foto
+    de perfil e dados de exibição.</p>
+  <h5><strong>5.1.2 Área de Conta Pessoal (RF 5.1.2)</strong></h5>
+  <p>Acesso às configurações privadas para gerenciamento de
+    credenciais (e-mail, senha) e dados eclesiásticos.</p>
+  <h4><strong>5.2 Interação Social do Apoiador (Seguir) (RF 5.2)</strong></h4>
+  <h5><strong>5.2.1 Regra de Conexão (RF 5.2.1)</strong></h5>
+  <p>O apoiador pode "Seguir" perfis de missionários para receber
+    suas atualizações no feed.</p>
+  <h5><strong>5.2.2 Restrição (RF 5.2.2)</strong></h5>
+  <p>O sistema não deve permitir que apoiadores sigam outros
+    apoiadores; a rede de conexões é focada no relacionamento Apoiador
+    -&gt; Missionário.</p>
+  <h4><strong>5.3 Consumo de Conteúdo e Feed do Apoiador (RF 5.3)</strong></h4>
+  <h5><strong>5.3.1 Aba Feed (RF 5.3.1)</strong></h5>
+  <p>O usuário tem acesso a um feed personalizado que agrega
+    cronologicamente as postagens e atualizações exclusivas dos
+    missionários que ele segue.</p>
+  <h4><strong>5.4 Ferramentas de Descoberta e Recomendação do
+      Apoiador (RF 5.4)</strong></h4>
+  <h5><strong>5.4.1 Aba Projetos de Impacto (RF 5.4.1)</strong></h5>
+  <p>O sistema deve exibir uma seção dedicada com recomendações de
+    projetos e campanhas missionárias (curadas por administradores ou
+    algoritmo), incentivando o apoio a novas causas.</p>
+  <h5><strong>5.4.2 Pesquisa (RF 5.4.2)</strong></h5>
+  <p>Acesso à ferramenta de busca global para localizar ativamente
+    missionários específicos ou projetos de interesse.</p>
+  <h4><strong>5.5 Interação com Missionários e Doação do Apoiador
+      (RF 5.5)</strong></h4>
+  <h5><strong>5.5.1 Visualização de Perfis (RF 5.5.1)</strong></h5>
+  <p>O apoiador pode acessar a página pública de qualquer missionário
+    para visualizar na íntegra biografia, informações de contato,
+    detalhes do Projeto de Impacto, campanhas e feed de postagens
+    públicas.</p>
+  <h5><strong>5.5.2 Realização de Doações (RF 5.5.2)</strong></h5>
+  <p>A partir do perfil do missionário, o usuário tem acesso direto à
+    "Área de Doações" para efetuar contribuições financeiras através
+    dos meios de pagamento configurados (PIX, Transferência).</p>
+  <h3 id="rf-6"><strong>6. Barra de Navegação
+      (NavBar)</strong></h3>
+  <h4><strong>6.1 Estrutura Geral (RF 6.1)</strong></h4>
+  <p>O sistema deve possuir uma barra de navegação principal (NavBar)
+    visível em todas as páginas, garantindo acesso rápido às
+    funcionalidades essenciais da plataforma. Esta barra deve adaptar
+    seu comportamento dependendo se o usuário está autenticado ou é um
+    visitante.</p>
+  <h4><strong>6.2 Itens de Navegação para Usuário Autenticado (RF 6.2)</strong></h4>
+  <p>A barra de navegação deve conter os seguintes atalhos:</p>
+  <h5><strong>6.2.1 Home (RF 6.2.1)</strong></h5>
+  <p>Redireciona o usuário para seu feed principal.</p>
+  <h5><strong>6.2.2 Pesquisar (RF 6.2.2)</strong></h5>
+  <p>Acesso à funcionalidade de busca de missionários e projetos.</p>
+  <h5><strong>6.2.3 Projetos (RF 6.2.3)</strong></h5>
+  <p>Acesso direto à área de exploração de novos projetos, conforme
+    <strong>Requisito 14</strong>.
+  </p>
+  <h5><strong>6.2.4 Conta (RF 6.2.4)</strong></h5>
+  <p>Redireciona o usuário para a área Configuações de conta, o qual é diferente da edição de Cabeçalho no Perfil
+    Principal.</p>
+  <p>O usuário (missionário ou apoiador) irá para uma página pessoal onde irá mexer nas suas Configurações de Conta,
+    conforme definido <strong>Requisito 15</strong>.</p>
+  <h5><strong>6.2.5 Sair (RF 6.2.5)</strong></h5>
+  <p>Funcionalidade para encerrar a sessão do usuário.</p>
+  <h4><strong>6.3 Comportamento do Visitante na NavBar (RF 6.3)</strong></h4>
+  <p>Para usuários não autenticados, a barra de navegação deve exibir
+    o logotipo da plataforma (que redireciona para a página
+    inicial/landing page) e um botão de destaque "Cadastre-se" ou
+    "Login", incentivando a entrada na plataforma.</p>
+  <h3 id="rf-7"><strong>7. Busca e Filtragem</strong></h3>
+  <h4><strong>7.1 Acesso à Busca (RF 7.1)</strong></h4>
+  <p>O sistema deve permitir iniciar uma pesquisa através de um ícone
+    dedicado na barra de navegação ou um campo de entrada de texto
+    explícito no cabeçalho.</p>
+  <h4><strong>7.2 Critérios de Filtragem (RF 7.2)</strong></h4>
+  <p>O motor de busca deve permitir encontrar resultados baseados
+    em:</p>
+  <ul>
+    <li>Nome do Missionário ou Usuário</li>
+    <li>Título do Projeto de Impacto</li>
+    <li>Título da Campanha</li>
+  </ul>
+  <h4><strong>7.3 Exibição de Resultados (RF 7.3)</strong></h4>
+  <p>O sistema deve apresentar os resultados em uma lista ou grade,
+    exibindo a foto de perfil e o nome/título correspondente,
+    permitindo que o usuário clique para visitar o perfil, projeto ou
+    campanha encontrado.</p>
+  <h3 id="rf-8"><strong>8. Postagens</strong></h3>
+  <h4><strong>8.1 Criação de Postagens (RF 8.1)</strong></h4>
+  <ul>
+    <li><strong>Apenas o perfil missionário</strong> deve poder criar
+      publicações contendo uma legenda, até 3 imagens, um link externo
+      opcional, um link embed do YouTube opcional e um link de
+      redirecionamento opcional para YouTube Shorts, TikTok ou Instagram
+      (Reels).</li>
+    <li>Cada postagem será composta de:
+      <ul>
+        <li>Avatar contendo a foto do missionário</li>
+        <li>Nome do missionário</li>
+        <li>Legenda</li>
+        <li>Até 3 imagens anexadas</li>
+        <li>Link externo (opcional)</li>
+        <li>Link embed do YouTube (opcional)</li>
+        <li>Link de redirecionamento para YouTube Shorts, TikTok ou
+          Instagram (apenas redireciona, opcional)</li>
+      </ul>
+    </li>
+    <li>O sistema deve obrigar o preenchimento da
+      <strong>legenda</strong>.
+    </li>
+    <li>Cada imagem publicada deve incrementar o contador global de imagens do missionário, limitado a 50 imagens no total.</li>
+  </ul>
+  <h4><strong>8.2 Gerenciamento de Postagens (RF 8.2)</strong></h4>
+  <p>O missionário deve poder excluir suas postagens. A exclusão deve
+    remover tanto o registro visual quanto o arquivo de imagem
+    armazenado.</p>
+  <p>Ao atingir o limite de 50 imagens no total, o sistema deve exibir um alerta informando que o missionário atingiu o limite de 50 imagens. Caso ele opte por prosseguir com o envio de uma nova imagem, o sistema deve solicitar confirmação explícita e substituir a imagem mais antiga pela nova imagem enviada.</p>
+  <h4><strong>8.3 Comentários nas Postagens (RF 8.3)</strong></h4>
+  <ul>
+    <li>Não haverá comentários inicialmente.</li>
+    <li>Deixar a arquitetura preparada futuramente para receber essa
+      feature.</li>
+    <li>A princípio, os comentários não possuem nenhum sistema de
+      citação ou comentários aninhados.</li>
+  </ul>
+  <h4><strong>8.4 Likes das Postagens (RF 8.4)</strong></h4>
+  <ul>
+    <li>Usuários de qualquer tipo podem marcar postagens com "Gostei"
+      (Like).</li>
+    <li>O usuário pode remover seu Like (Descurtir) a qualquer
+      momento.</li>
+  </ul>
+  <h4><strong>8.5 Interação de Segurança nas Postagens (RF
+      8.5)</strong></h4>
+  <p>Os usuários devem poder clicar em um ícone de "3 pontos" (Kebab
+    Menu) na postagem para acessar uma janela modal com o botão
+    "<strong>Denunciar</strong>". O fluxo está definido no
+    <strong>Requisito 16</strong>.
+  </p>
+  <h3 id="rf-9"><strong>9. Projetos de Impacto</strong></h3>
+  <h4><strong>9.1 Cadastro de Projeto (RF 9.1)</strong></h4>
+  <p>Somente o missionário deve poder colocar um "Projeto de Impacto"
+    em seu perfil.</p>
+  <h4><strong>9.2 Estrutura do Projeto (RF 9.2)</strong></h4>
+  <ul>
+    <li><strong>Título:</strong> Texto curto descritivo (com limite de
+      caracteres).</li>
+    <li><strong>Vídeo:</strong> Campo para URL de vídeo hospedado
+      externamente. O sistema deve tratar o link para garantir a exibição
+      correta em formato "embed" (incorporado) na interface
+      (Opcional).</li>
+    <li><strong>Descrição:</strong> Texto detalhado sobre o projeto
+      (com limite de caracteres).</li>
+    <li><strong>Imagem de Capa:</strong> Funcionalidade para envio de
+      imagem representativa (Obrigatória).</li>
+    <li><strong>(Em caso de o Projeto de Impacto estar associado a uma Campanha) Selo de Campanha:</strong> Exibe um selo indicando a associação com um Camapanha (ver Requisito 13).</li>
+    <li><strong>(Em caso de o Projeto de Impacto estar associado a uma Campanha) Título de Campanha:</strong> Exibe o título da Campanha associada (ver Requisito 13).</li>
+  </ul>
+  <h4><strong>9.3 Visualização de Projeto de Impacto e Denúncia (RF
+      9.3)</strong></h4>
+  <p>O projeto deve ser exibido em destaque no perfil do missionário,
+    permitindo a visualização da imagem (com opção de zoom), reprodução
+    do vídeo e leitura da descrição completa. No canto superior
+    direito, um botão “Kebab Menu” deve estar presente no contêiner que
+    abriga o Projeto de Impacto. Ao clicar neste menu, uma janela modal
+    deve abrir e conter o botão <strong>“Denunciar”</strong>. Ao clicar
+    neste botão de <strong>“Denunciar”</strong>, executa o fluxo
+    definido no <strong>Requisito 16</strong>.</p>
+  <h4><strong>9.4 Edição e Exclusão de Projeto de Impacto (RF
+      9.4)</strong></h4>
+  <p>O missionário deve poder alterar qualquer dado do projeto ou
+    excluí-lo permanentemente. A exclusão deve requerer confirmação
+    explícita.</p>
+  <h3 id="rf-10"><strong>10. Perfil do Missionário</strong></h3>
+  <h4><strong>10.1 Visualização de Identidade no Cabeçalho (RF
+      10.1)</strong></h4>
+  <p>O sistema deve exibir, na parte superior do perfil, as
+    informações essenciais de identificação do missionário:</p>
+  <ul>
+    <li><strong>Foto de Perfil (Avatar):</strong> Imagem enviada pelo
+      usuário. Caso não exista ou enquanto carrega, deve ser exibido um
+      indicador visual padrão (placeholder/loading).</li>
+    <li><strong>Nome Completo:</strong> Texto em destaque.</li>
+    <li><strong>Identificação da "Role":</strong> Exibição do rótulo
+      "(missionário)" para confirmar o tipo de conta.</li>
+    <li><strong>Nome de Usuário:</strong> Identificador único (ex:
+      <code>samuel_missionary</code>).
+    </li>
+    <li><strong>Agência Missionária:</strong> Exibe a agência à qual o missionário está vinculado.</li>
+    <li><strong>Selo de Campanha:</strong> Quando o missionário possuir um Projeto de Impacto associado a uma Campanha, o cabeçalho deve exibir o selo correspondente próximo às informações de identificação.</li>
+    <li><strong>Minibiografia:</strong> Texto curto descritivo ou
+      informativo (ex: links de redes sociais).</li>
+  </ul>
+  <h4><strong>10.2 Contexto de Visualização (Dono vs. Visitante) (RF
+      10.2)</strong></h4>
+  <p>O sistema deve adaptar os botões de ação exibidos no cabeçalho
+    dependendo de quem está visualizando o perfil:</p>
+  <ul>
+    <li><strong>Visão do Dono do cabeçalho:</strong> Se o usuário
+      autenticado estiver visualizando seu próprio perfil, o sistema deve
+      exibir os botões <strong>"Seguidores"</strong> (para ver a lista de
+      quem o acompanha) e <strong>"Editar"</strong> (para alterar dados
+      do perfil).</li>
+    <li><strong>Visão do Visitante:</strong> Se o usuário for um
+      visitante (apoiador ou outro missionário), o sistema deve exibir os
+      botões <strong>"Seguir/Seguindo"</strong> (ação de relacionamento)
+      e <strong>"Doar"</strong> (intenção de contribuição).</li>
+  </ul>
+  <h4><strong>10.3 Funcionalidades dos Botões de Ação (RF
+      10.3)</strong></h4>
+  <ul>
+    <li><strong>Botão Link:</strong> Ao clicar, o sistema deve
+      apresentar uma janela (modal) contendo o link de compartilhamento
+      da página do perfil, permitindo que o usuário copie a URL para a
+      área de transferência.</li>
+    <li><strong>Botão Contato:</strong> Ao clicar, o sistema deve abrir
+      uma janela (modal) exibindo o E-mail e o Telefone públicos
+      cadastrados, com funcionalidade de "Copiar" para cada
+      informação.</li>
+    <li><strong>Botão Doações:</strong> Ao clicar, o sistema deve fazer
+      um redirecionamento para a área de doação, conforme descrito no
+      <strong>Requisito 12</strong>. <em>Exceção:</em> Se o usuário não
+      estiver autenticado (visitante não logado), ao clicar em "Doar", o
+      sistema deve exibir um alerta solicitando que ele se cadastre ou
+      faça login primeiro.
+    </li>
+    <li><strong>Botão Seguir/Deixar de Seguir:</strong> O sistema deve
+      alternar o estado do relacionamento entre o visitante e o
+      missionário, atualizando o contador de seguidores em tempo
+      real.</li>
+    <li><strong>Botão Editar:</strong> Deve redirecionar o usuário
+      proprietário para a interface de Edição de Cabeçalho.</li>
+    <li><strong>Botão Kebab Menu:</strong> Um botão Kebab Menu que ao
+      ser clicado abre uma janela modal com os seguintes itens:</li>
+    <li><strong>Botão Denunciar:</strong> Um botão na janela modal para
+      que os visitantes possam reportar o usuário à plataforma. Ao clicar
+      neste botão de <strong>Denunciar</strong>, executa o fluxo definido
+      no <strong>Requisito 16</strong>.</li>
+  </ul>
+  <h4><strong>10.4 Navegação Interna do Perfil (Abas) (RF
+      10.4)</strong></h4>
+  <p>Abaixo das informações e botões, o cabeçalho deve conter uma
+    barra de navegação para alternar o conteúdo exibido na parte
+    inferior da tela. As abas devem ser:</p>
+  <ul>
+    <li><strong>Sobre:</strong> Exibe as informações biográficas e
+      ministeriais do missionário (biografia, história em missões,
+      localização, agência missionária, comunidade de fé, pedidos de
+      oração e versículo para a vida), conforme detalhado no
+      <strong>RF 10.7</strong>.</li>
+    <li><strong>Projeto:</strong> Exibe os detalhes do projeto de
+      impacto.</li>
+    <li><strong>Campanha:</strong> Se o missionário possuir um Projeto de Impacto associado a uma Campanha promovida pela Administração do Mission app, deve exibir um contêiner com as informações da campanha. Esse contêiner deve reunir os seguintes elementos:
+      <ul>
+        <li>Carrossel rotativo de imagens;</li>
+        <li>Título da Campanha;</li>
+        <li>Subtítulo da Campanha;</li>
+        <li>Descrição da Campanha;</li>
+        <li>Selo de Campanha;</li>
+        <li>Botão para redirecionar à Página da Campanha;</li>
+      </ul>
+    </li>
+    <li><strong>Postagens:</strong> Exibe o feed de publicações do
+      missionário.</li>
+    <li><em>Comportamento:</em> A aba ativa deve possuir um destaque
+      visual (ex: sublinhado ou cor diferente).</li>
+  </ul>
+  <h4><strong>10.5 Edição do Cabeçalho e Perfil (RF 10.5)</strong></h4>
+  <p>Ao clicar no botão "Editar" (visível apenas para o dono do
+    perfil), o sistema deve redirecionar para um formulário de edição
+    contendo:</p>
+  <ul>
+    <li><strong>10.5.1 Campos Editáveis:</strong>
+      <ul>
+        <li><strong>Foto de Perfil:</strong> Botão para selecionar e enviar
+          uma nova imagem do dispositivo.</li>
+        <li><strong>Nome Completo:</strong> Campo de texto livre.</li>
+        <li><strong>Nome de Usuário:</strong> Campo de texto para alteração
+          do identificador único. O sistema deve validar novamente a
+          unicidade ao submeter.</li>
+        <li><strong>Minibiografia:</strong> Campo de texto (textarea) para
+          descrição curta (com contador de caracteres e limite definido, ex:
+          200 caracteres).</li>
+        <li><strong>Dados de Contato Público:</strong> Campos específicos
+          para "Email para o público" e "Telefone para o público" (com
+          máscara de formatação).</li>
+      </ul>
+    </li>
+    <li><strong>10.5.2 Ações do Formulário:</strong>
+      <ul>
+        <li><strong>Cancelar:</strong> Descarta as alterações e retorna ao
+          perfil.</li>
+        <li><strong>Submeter:</strong> Salva as alterações na base de dados
+          e atualiza a visualização do perfil.</li>
+      </ul>
+    </li>
+  </ul>
+  <figure>
+    <img src="img/CabecalhoDePerfil.png" alt="Interface de edição de cabeçalho e perfil do usuário">
+    <figcaption>Figura 10.5: Interface de edição de cabeçalho e perfil do usuário.</figcaption>
+  </figure>
+  <h4><strong>10.6 Gerenciamento e Visualização de Seguidores (RF
+      10.6)</strong></h4>
+  <p>Ao clicar no botão "Seguidores" (visível apenas para o dono do
+    perfil), o sistema deve apresentar uma interface dedicada
+    contendo:</p>
+  <ul>
+    <li><strong>10.6.1 Indicadores:</strong> Exibição do contador total
+      numérico de seguidores (ex: "Número de seguidores: 8").</li>
+    <li><strong>10.6.2 Listagem:</strong> Uma lista visual contendo
+      cartões (<em>cards</em>) para cada seguidor, exibindo:
+      <ul>
+        <li>Avatar do usuário.</li>
+        <li>Nome Completo.</li>
+        <li>Nome de Usuário (handle).</li>
+      </ul>
+    </li>
+    <li><strong>10.6.3 Navegação e Interatividade:</strong>
+      <ul>
+        <li>Cada cartão de seguidor deve ser clicável. Ao clicar, o sistema
+          deve <strong>redirecionar</strong> o usuário para a página de
+          perfil público daquele seguidor específico (seja ele um apoiador ou
+          outro missionário).</li>
+      </ul>
+    </li>
+    <li><strong>10.6.4 Paginação:</strong> A lista deve implementar
+      paginação ou carregamento sob demanda (botão "Carregar mais") para
+      gerenciar grandes quantidades de seguidores de forma
+      performática.</li>
+  </ul>
+  <h4><strong>10.7 Aba "Sobre" do Perfil (RF
+      10.7)</strong></h4>
+  <p>A aba "Sobre" deve exibir informações biográficas e ministeriais
+    detalhadas do missionário. O conteúdo desta aba é público, visível
+    tanto pelo dono do perfil quanto por qualquer visitante, seguindo o
+    mesmo padrão de visibilidade das demais abas descritas no
+    <strong>RF 10.4</strong>. Apenas o botão "Editar", exibido no canto
+    superior direito do painel, é restrito ao dono do perfil (ver
+    <strong>RF 10.2</strong>).</p>
+  <ul>
+    <li><strong>10.7.1 Campos Exibidos:</strong>
+      <ul>
+        <li><strong>Biografia:</strong> Texto curto exibido sem rótulo
+          visível na interface, descrevendo brevemente o missionário
+          (ex: "Meu nome é Samuel Mendonça e sou missionário em tempo
+          integral...").</li>
+        <li><strong>Resumo da minha história em missões:</strong> Campo
+          rotulado exibindo um texto mais longo contando a trajetória
+          missionária do usuário.</li>
+        <li><strong>Local de origem:</strong> Texto indicando a
+          cidade/país de origem do missionário (ex: "Rio de Janeiro -
+          Brasil").</li>
+        <li><strong>Local de atuação atual:</strong> Texto indicando a
+          cidade/país onde o missionário atua atualmente (ex: "Rio de
+          Janeiro - Brasil").</li>
+        <li><strong>Agência Missionária:</strong> Exibe a agência à qual
+          o missionário está vinculado, conforme cadastrado (ver
+          <strong>RF 3</strong> e <strong>RF 10.1</strong>).</li>
+        <li><strong>Comunidade de Fé:</strong> Exibe o nome da
+          Comunidade de Fé à qual o missionário é vinculado, conforme
+          cadastrado (ver <strong>RF 3</strong>).</li>
+        <li><strong>Pedidos de oração:</strong> Texto (citação) com
+          pedido(s) de oração do missionário.</li>
+        <li><strong>Versículo para a vida:</strong> Texto (citação) com
+          um versículo bíblico significativo para o missionário.</li>
+      </ul>
+    </li>
+    <li><strong>10.7.2 Campos Editáveis:</strong>
+      <ul>
+        <li><strong>Biografia:</strong> Campo de texto (textarea) para
+          edição do texto curto exibido na aba.</li>
+        <li><strong>Resumo da minha história em missões:</strong> Campo
+          de texto (textarea) para edição do resumo da trajetória
+          missionária.</li>
+        <li><strong>Local de origem:</strong> Campo de texto livre.</li>
+        <li><strong>Local de atuação atual:</strong> Campo de texto
+          livre.</li>
+        <li><strong>Pedidos de oração:</strong> Campo de texto
+          (textarea) para edição do(s) pedido(s) de oração.</li>
+        <li><strong>Versículo para a vida:</strong> Campo de texto
+          (textarea) para edição do versículo.</li>
+      </ul>
+    </li>
+    <li><strong>10.7.3 Ações do Formulário:</strong>
+      <ul>
+        <li><strong>Cancelar:</strong> Descarta as alterações e retorna
+          à visualização da aba "Sobre".</li>
+        <li><strong>Submeter:</strong> Salva as alterações na base de
+          dados e atualiza a visualização da aba.</li>
+      </ul>
+    </li>
+  </ul>
+  <h3 id="rf-11"><strong>11. Perfil do Apoiador</strong></h3>
+  <h4><strong>11.1 Visualização de Identidade no Cabeçalho (RF 11.1)</strong></h4>
+  <p>O sistema deve exibir, na parte superior do perfil, as
+    informações essenciais de identificação do apoiador:</p>
+  <ul>
+    <li><strong>Foto de Perfil (Avatar):</strong> Imagem enviada pelo
+      usuário. Caso não exista ou enquanto carrega, deve ser exibido um
+      indicador visual padrão (placeholder/loading).</li>
+    <li><strong>Nome Completo:</strong> Texto em destaque.</li>
+    <li><strong>Identificação da "Role":</strong> Exibição do rótulo
+      "(apoiador)" para confirmar o tipo de conta.</li>
+    <li><strong>Nome de Usuário:</strong> Identificador único (ex:
+      <code>carlos_supporter</code>).
+    </li>
+    <li><strong>Minibiografia:</strong> Texto curto descritivo ou
+      informativo (ex: links de redes sociais).</li>
+    <li><strong>Comunidade de Fé:</strong> Exibição do nome da Comunidade de Fé à qual o apoiador é vinculado
+      (opcional).</li>
+  </ul>
+  <h4><strong>11.2 Contexto de Visualização (Dono vs. Visitante) (RF 11.2)</strong></h4>
+  <p>O sistema deve adaptar os botões de ação exibidos no cabeçalho
+    dependendo de quem está visualizando o perfil:</p>
+  <ul>
+    <li><strong>Visão do Dono do cabeçalho:</strong> Se o apoiador autenticado
+      estiver visualizando seu próprio perfil, o sistema deve exibir os
+      botões <strong>"Seguindo"</strong> (para ver a lista de missionários
+      que ele acompanha) e <strong>"Editar"</strong> (para alterar dados do perfil).</li>
+    <li><strong>Visão do Visitante:</strong> Se o usuário for um visitante,
+      o perfil do apoiador não deve exibir botões de relacionamento como
+      "Seguir/Seguindo" (pois apoiadores não podem ser seguidos) nem "Doar".
+      O sistema deve apresentar apenas o <strong>botão Kebab Menu</strong>
+      com a opção de "Denunciar".</li>
+  </ul>
+  <h4><strong>11.3 Funcionalidades dos Botões de Ação (RF 11.3)</strong></h4>
+  <ul>
+    <li><strong>Botão Editar:</strong> Deve redirecionar o usuário
+      proprietário para a interface de Edição do Perfil.</li>
+    <li><strong>Botão Seguindo:</strong> Redireciona o usuário para a interface
+      de listagem de missionários que ele está seguindo.</li>
+    <li><strong>Botão Kebab Menu:</strong> Exibido para visitantes. Ao ser clicado,
+      abre uma janela modal contendo o botão "Denunciar". Ao clicar no botão
+      <strong>Denunciar</strong>, executa o fluxo definido no
+      <strong>Requisito 16</strong>.
+    </li>
+  </ul>
+  <h4><strong>11.4 Navegação Interna do Perfil (Abas) (RF 11.4)</strong></h4>
+  <p>Abaixo das informações e botões, o cabeçalho deve conter uma
+    barra de navegação para alternar o conteúdo exibido na parte
+    inferior da tela. As abas devem ser:</p>
+  <ul>
+    <li><strong>Feed:</strong> Exibe o feed de publicações dos missionários
+      que o apoiador segue.</li>
+    <li><strong>Explorar:</strong> Exibe a seção de exploração de novos
+      Projetos de Impacto, conforme descrito no <strong>Requisito 14</strong>.</li>
+    <li><em>Comportamento:</em> A aba ativa deve possuir um destaque
+      visual (ex: sublinhado ou cor diferente).</li>
+  </ul>
+  <h4><strong>11.5 Edição do Cabeçalho e Perfil (RF 11.5)</strong></h4>
+  <p>Ao clicar no botão "Editar" (visível apenas para o dono do
+    perfil), o sistema deve redirecionar para um formulário de edição
+    contendo:</p>
+  <ul>
+    <li><strong>11.5.1 Campos Editáveis:</strong>
+      <ul>
+        <li><strong>Foto de Perfil:</strong> Botão para selecionar e enviar
+          uma nova imagem do dispositivo.</li>
+        <li><strong>Nome Completo:</strong> Campo de texto livre.</li>
+        <li><strong>Nome de Usuário:</strong> Campo de texto para alteração
+          do identificador único. O sistema deve validar novamente a
+          unicidade ao submeter.</li>
+        <li><strong>Minibiografia:</strong> Campo de texto (textarea) para
+          descrição curta (com contador de caracteres e limite definido, ex:
+          200 caracteres).</li>
+      </ul>
+    </li>
+    <li><strong>11.5.2 Ações do Formulário:</strong>
+      <ul>
+        <li><strong>Cancelar:</strong> Descarta as alterações e retorna ao
+          perfil.</li>
+        <li><strong>Submeter:</strong> Salva as alterações na base de dados
+          e atualiza a visualização do perfil.</li>
+      </ul>
+    </li>
+  </ul>
+  <h4><strong>11.6 Gerenciamento e Visualização de "Seguindo" (RF 11.6)</strong></h4>
+  <p>Ao clicar no botão "Seguindo" (visível apenas para o dono do
+    perfil), o sistema deve apresentar uma interface dedicada
+    contendo:</p>
+  <ul>
+    <li><strong>11.6.1 Indicadores:</strong> Exibição do contador total
+      numérico de missionários seguidos (ex: "Seguindo: 12").</li>
+    <li><strong>11.6.2 Listagem:</strong> Uma lista visual contendo
+      cartões (<em>cards</em>) para cada missionário seguido, exibindo:
+      <ul>
+        <li>Avatar do missionário.</li>
+        <li>Nome Completo.</li>
+        <li>Nome de Usuário (handle).</li>
+      </ul>
+    </li>
+    <li><strong>11.6.3 Navegação e Interatividade:</strong>
+      <ul>
+        <li>Cada cartão de missionário seguido deve ser clicável. Ao clicar, o sistema
+          deve <strong>redirecionar</strong> o usuário para a página de
+          perfil público daquele missionário específico.</li>
+      </ul>
+    </li>
+    <li><strong>11.6.4 Paginação:</strong> A lista deve implementar
+      paginação ou carregamento sob demanda (botão "Carregar mais") para
+      gerenciar grandes quantidades de conexões de forma
+      performática.</li>
+  </ul>
+  <h3 id="rf-12"><strong>12. Área de Doações</strong></h3>
+  <h4><strong>12.1 Configuração da Área de Doação - Visão do
+      Missionário (RF 12.1)</strong></h4>
+  <p>O sistema deve fornecer ao missionário, dentro de sua área de
+    doação, uma seção dedicada para configurar como ele receberá
+    recursos e mensagens aos apoiadores.</p>
+  <h5><strong>12.1.1 Mensagem aos Apoiadores (RF 12.1.1)</strong></h5>
+  <p>O missionário deve poder apertar o <strong>botão “Editar
+      Mensagem aos Apoiadores”</strong> e editar um texto personalizado
+    de apelo ou agradecimento (ex: "Me ajude, por favor!") que será
+    exibido no topo da página de doação.</p>
+  <h5><strong>12.1.2 Métodos de Doação Disponíveis (RF 12.1.2)</strong></h5>
+  <p>Para evitar a necessidade de implementar um sistema de
+    pagamentos próprio dentro do aplicativo nesta etapa, o sistema deve
+    permitir que o missionário escolha qual das <strong>2 modalidades
+      distintas</strong> de recebimento de recursos. É permitido escolher
+    mais de uma modalidade:</p>
+  <ul>
+    <li><strong>A) Doação via Pix Simples (Atalho Interno):</strong>
+      <ul>
+        <li>O missionário informa sua <strong>chave Pix</strong> (campo
+          obrigatório).</li>
+        <li>Pode enviar opcionalmente um <strong>QR Code estático</strong>
+          (upload de imagem).</li>
+        <li>O app exibirá ao apoiador:
+          <ul>
+            <li>Botão "Doar via Pix"</li>
+            <li>QR Code (se anexado)</li>
+            <li>Botão "Copiar chave Pix"</li>
+          </ul>
+        </li>
+        <li>O pagamento ocorre <strong>fora do aplicativo</strong>,
+          diretamente no banco do apoiador.</li>
+      </ul>
+    </li>
+    <li><strong>B) Doação via Transferência Bancária:</strong>
+      <ul>
+        <li>O missionário poderá cadastrar seus dados bancários para
+          receber doações via transferência. Os seguintes campos deverão ser
+          informados:
+          <ul>
+            <li>Nome do banco</li>
+            <li>Número do banco</li>
+            <li>Agência</li>
+            <li>Conta (e dígito)</li>
+            <li>Tipo de conta (corrente/poupança/pagamento)</li>
+            <li>Nome do titular</li>
+            <li>CPF ou CNPJ do titular</li>
+          </ul>
+        </li>
+        <li>O aplicativo exibirá esses dados de forma clara em uma seção
+          chamada <strong>“Transferência Bancária”</strong>, permitindo que o
+          usuário copie cada informação individualmente (função “Copiar”) ou
+          copie todos os dados de uma vez (“Copiar tudo”).</li>
+      </ul>
+    </li>
+  </ul>
+  <h5><strong>12.1.4 Visualização de Status (RF 12.1.4)</strong></h5>
+  <p>O missionário deve ter feedback visual sobre sua
+    configuração:</p>
+  <ul>
+    <li><strong>Ativo</strong>: método de doação configurado e
+      funcional.</li>
+    <li><strong>Pendente</strong>: informações incompletas ou método
+      inválido.</li>
+  </ul>
+  <h4><strong>12.2 Visão do Apoiador: Fluxos de Doação (RF 12.2)</strong></h4>
+  <p>Ao clicar em "Doar", o sistema deve apresentar ao apoiador uma
+    interface clara, apresentando a mensagem de agradecimento e
+    exibindo o método configurado pelo missionário. Se o missionário
+    optar por Pix simples ou transferência bancária, então, a doação
+    deve ser feita <strong>fora do aplicativo</strong>, sem processar
+    transações internamente.</p>
+  <h4><strong>12.3 Segurança e Processamento (RF 12.3)</strong></h4>
+  <ul>
+    <li>Dados sensíveis de cartão <strong>não são
+        armazenados</strong>.</li>
+    <li>Para modos externos de doação (Pix simples ou transferência
+      bancária), o aplicativo <strong>não participa do
+        processamento</strong>, não armazenando dados financeiros.</li>
+  </ul>
+  <figure>
+    <img src="img/ÁreaDoacao.png" alt="Interface da área de doação do Mission App (Pix ou transferência)">
+    <figcaption>Figura 12: Interface da área de doação do Mission App (Pix ou transferência).</figcaption>
+  </figure>
+  <h3 id="rf-13"><strong>13. Campanhas de Divulgação</strong></h3>
+  <h4>13.1 Cadastro de Campanhas (RF 13.1)</h4>
+  <p>Cada Campanha deverá possuir obrigatoriamente:</p>
+  <ul>
+    <li>Título;</li>
+    <li>Subtítulo;</li>
+    <li>Descrição de até 1.500 palavras;</li>
+    <li>Banner principal;</li>
+    <li>Selo de Campanha;</li>
+    <li>Imagem de Perfil;</li>
+    <li>Até cinco imagens;</li>
+    <li>Até 1 (um) link para vídeo: URL externa para Youtube ou plataforma externa de vídeo;</li>
+    <li>Link de redirecionamento;</li>
+    <li>Link de compartilhamento;</li>
+    <li>Dia Oficial de Realização da Campanha nas Igrejas;</li>
+    <li>Data de início;</li>
+    <li>Data de término;</li>
+  </ul>
+  <p>O sistema deve permitir o cadastro de Campanhas de Divulgação
+    destinadas à promoção de campanhas missionários e seus projetos
+    associados. Devem ser criadas exclusivamente pelo administrador,
+    conforme <strong>Requisito 18.4</strong>.</p>
+  <h4>13.2 Associação de Projetos de Impacto (RF 13.2)</h4>
+  <p><strong>Uma Campanha pode ou não ter Projetos de Impacto associados</strong>. Caso tenha, poderá possuir um ou mais Projetos de Impacto
+    associados.</p>
+  <p>Os projetos associados deverão ser selecionados pelo
+    administrador durante a criação ou edição da campanha, conforme
+    <strong>Requisito 18.4</strong>.
+  </p>
+  <p>Um Projeto de Impacto poderá participar de diferentes
+    campanhas.</p>
+  <h4>13.3 Página da Campanha (RF 13.3)</h4>
+  <p>Cada campanha publicada deverá possuir uma página própria
+    contendo:</p>
+  <ul>
+    <li>Banner principal;</li>
+    <li>Título;</li>
+    <li>Subtítulo;</li>
+    <li>Descrição completa;</li>
+    <li>Selo de Campanha;</li>
+    <li>Imagem de Perfil;</li>
+    <li>Dia Oficial de Realização da Campanha nas Igrejas;</li>
+    <li>Até cinco imagens;</li>
+    <li>Até 1 (um) link para vídeo: URL externa para Youtube ou plataforma externa de vídeo;</li>
+    <li>Botão de redirecionamento;</li>
+    <li>Botão de compartilhamento;</li>
+    <li>Botão "Ir para a seção de Projetos de Impactos".</li>
+  </ul>
+  <h4>13.4 Integração com a Seção de Exploração de Projetos de
+    Impacto (RF 13.4)</h4>
+  <h5>13.4.1 Exibição da Campanha na Área de Exploração de Projetos
+    de Impacto (RF 13.4.1)</h5>
+  <p>Ao selecionar "Ir para a seção de Projetos de Impacto", as
+    campanhas publicadas deverão ser exibidas na Aba de Exploração de
+    Projetos de Impacto da plataforma, onde devem:</p>
+  <ul>
+    <li>aparecer no topo da Aba de Exploração de Projetos de Impacto,
+      em um contêiner contendo:
+      <ul>
+        <li>Carrossel rotativo de imagens;</li>
+        <li>Título da Campanha;</li>
+        <li>Subtítulo da Campanha;</li>
+        <li>Descrição da Campanha;</li>
+        <li>Selo de Campanha;</li>
+        <li>Dia Oficial de Realização da Campanha nas Igrejas;</li>
+        <li>Botão para redirecionar à Página da Campanha;</li>
+        <li>Botão "Ver Projetos de Impacto" (Link que leva aos Projetos de
+          Impacto selecionados);</li>
+        <li>Botão de compartilhamento.</li>
+      </ul>
+    </li>
+  </ul>
+  <h5>13.4.2 Exibição dos Projetos de Impacto pertencentes a uma Campanha na Seção de Exploração de Projetos de Impacto (RF 13.4.2)</h5>
+  <p>O sistema deverá apresentar os Projetos de Impacto vinculados à
+    campanha abaixo do contêiner de Campanha.</p>
+  <p>O design dos Cards de Projetos de Impacto na Aba de Exploração de Projetos de Impacto está descrito no
+    <strong>Requisito 14</strong>. Cada Card de Projeto de Impacto que faz parte
+    de uma Campanha deve ter em seu card os seguintes elementos
+    adicionais:
+  </p>
+  <ul>
+    <li>Selo de Campanha;</li>
+    <li>Título da campanha.</li>
+  </ul>
+  <p>Cada projeto deverá possuir acesso direto à sua página
+    individual (RF 14).</p>
+  <h5>13.4.3 Descoberta de Campanhas (RF 13.4.3)</h5>
+  <p>Deverá ser possível encontrar campanhas através de buscas na plataforma.</p>
+  <h4>13.5 Compartilhamento (RF 13.5)</h4>
+  <p>Cada página de uma Campanha deverá possuir um endereço (URL) próprio para
+    compartilhamento.</p>
+  <h4>13.6 Exibição para os Usuários (RF 13.6)</h4>
+  <p>Somente campanhas com status Publicada deverão ser exibidas aos
+    usuários, conforme <strong>Requisito 18.4</strong>.</p>
+  <p>Campanhas arquivadas ou em rascunho não deverão ser acessíveis
+    pela interface pública.</p>
+
+  <h4>13.7 Padrão de Criação de Campanhas (RF 13.7)</h4>
+
+  <p>
+    A criação de Campanhas deverá seguir o padrão de projeto
+    <strong>Factory Method combinado com Template Method</strong>,
+    de modo a suportar diferentes tipos de Campanha sem duplicação de regras de negócio.
+  </p>
+
+  <p>
+    Uma classe abstrata <code>Campanha</code> deverá definir, via Template Method,
+    o esqueleto comum de validação e publicação, contemplando os campos obrigatórios
+    descritos no Requisito 13.1 (título, subtítulo, descrição, banner principal,
+    selo de campanha, imagem de perfil, imagens adicionais, link de vídeo,
+    links de redirecionamento e compartilhamento, e datas).
+  </p>
+
+  <p>
+    Subclasses concretas deverão implementar apenas as regras específicas de cada
+    tipo de Campanha (<strong>No futuro, podem haver novos tipos ou modalidades de Campanha</strong>):
+  </p>
+
+  <ul>
+    <li>
+      <strong>Campanha Default</strong>: exige Data de Início e Data de Término,
+      com validação de que o término seja posterior ao início;
+    </li>
+  </ul>
+
+  <p>
+    Uma <code>CampanhaFactory</code> deverá centralizar a instanciação dos diferentes
+    tipos de Campanha, garantindo que:
+  </p>
+
+  <ul>
+    <li>apenas o administrador possa criar ou editar Campanhas, conforme Requisito 18.4;</li>
+    <li>
+      cada Campanha seja validada de acordo com as regras do seu tipo antes de ser
+      associada a Projetos de Impacto (RF 13.2) ou publicada (RF 13.6);
+    </li>
+    <li>
+      novos tipos de Campanha possam ser adicionados futuramente sem necessidade
+      de alteração das regras já existentes, respeitando o princípio de
+      aberto/fechado (Open/Closed).
+    </li>
+  </ul>
+  <h3 id="rf-14"><strong>14. Seção de Projetos de Impactos</strong></h3>
+  <h4><strong>14.1 Aba de Projetos de Impacto (RF 14.1)</strong></h4>
+  <p>O sistema deve exibir, tanto para missionários quanto para
+    usuários apoiadores, uma aba dedicada ("Explore
+    novos Projetos de Impacto") voltada para a descoberta de iniciativas que o
+    usuário ainda <strong>não segue</strong>.</p>
+  <h4><strong>14.2 Visualização em Cards (RF 14.2)</strong></h4>
+  <p>Os projetos recomendados devem ser exibidos no formato de
+    cartões (cards) contendo:</p>
+  <h5><strong>14.2.2 Foto de Perfil do Missionário (RF 14.2.2)</strong></h5>
+  <p>Foto de Perfil do Missionário responsável.</p>
+  <h5><strong>14.2.2 Nome do Missionário (RF 14.2.2)</strong></h5>
+  <p>Nome do Missionário responsável.</p>
+  <h5><strong>14.2.1 Título do Projeto (RF 14.2.1)</strong></h5>
+  <p>Ex: "Missões na África do Sul".</p>
+  <h5><strong>14.2.3 Descrição (RF 14.2.3)</strong></h5>
+  <p>Uma breve descrição ou slogan do projeto.</p>
+  <h5><strong>14.2.4 Imagem de Capa (RF 14.2.4)</strong></h5>
+  <p>Imagem de capa ilustrativa do projeto.</p>
+  <h5><strong>14.2.5 <strong>(Em campanha)</strong> Selo de Campanha (RF 14.2.5)</strong></h5>
+  <p> <strong>Caso o Projeto de Impacto esteja associado a uma Campanha</strong> deve apresentar o Selo de Campanha no
+    card.</p>
+  <h5><strong>14.2.6 <strong>(Em campanha)</strong> Título da Campanha (RF 14.2.5)</strong></h5>
+  <p> <strong>Caso o Projeto de Impacto esteja associado a uma Campanha</strong> deve apresentar o Título da Campanha no
+    card.</p>
+  <h4><strong>14.3 Interação com Cards (RF 14.3)</strong></h4>
+  <p>Ao clicar em um card de projeto recomendado, o sistema deve
+    redirecionar o usuário para a página de perfil do missionário
+    responsável, onde será possível realizar doações ou seguir o
+    perfil.</p>
+  <h4><strong>14.4 Conteúdo Sugerido e Algoritmo (RF 14.4)</strong></h4>
+  <p>A sugestão de projetos pode ser manualmente imposta pelos
+    administradores durante uma campanha de promoção de projetos,
+    conforme painel de gerenciamento administrativo.</p>
+  <ul>
+    <li>Caso haja uma lista de projetos selecionados, será exibido um contêiner com os detalhes da Campanha, conforme especifica o <strong>Requisito 13</strong>.</li>
+    <li>Após todos os projetos selecionados pelo administrador terem
+      sido exibidos ao usuário, então, uma heurística de aleatoriedade
+      será usada para selecionar as recomendações paginadas.</li>
+    <li>Caso não haja nenhum projeto selecionado previamente pelos
+      administradores, a heurística de aleatoriedade será usada para
+      selecionar as recomendações paginadas.</li>
+  </ul>
+  <figure>
+    <img src="img/ProjetosDeImpacto.png"
+      alt="Interface da tela de exploração de novos Projetos de Impacto no formato de cards">
+    <figcaption>Figura 14: Tela de exploração de novos Projetos de Impacto no formato de cards.</figcaption>
+  </figure>
+  <h3 id="rf-15"><strong>15. Configurações de Conta</strong></h3>
+  <h4><strong>15.1 Acesso às Configurações (RF 15.1)</strong></h4>
+  <p>O sistema deve disponibilizar uma área restrita de
+    "Configurações de Conta", acessível apenas pelo próprio usuário
+    autenticado, distinta da edição de perfil público.</p>
+  <h4><strong>15.2 Gerenciamento de Credenciais de Acesso (RF 15.2)</strong></h4>
+  <h5><strong>15.2.1 Alteração de E-mail de Login:</strong> O usuário
+    deve poder alterar seu e-mail pessoal (utilizado para login). Por
+    segurança, esta ação deve exigir a confirmação da senha atual.</h5>
+  <h5><strong>15.2.2 Redefinição de Senha:</strong> O usuário deve
+    poder alterar sua senha de acesso. O sistema deve solicitar a senha
+    atual e a nova senha (com confirmação), ou oferecer um gatilho para
+    o fluxo de redefinição via e-mail seguro ("Enviar link de
+    redefinição").</h5>
+  <h4><strong>15.3 Edição de Dados Eclesiásticos (RF 15.3)</strong></h4>
+  <p>Considerando que a vinculação com a comunidade de fé é
+    fundamental para a integridade da plataforma. O usuário poderá
+    atualizar os dados da igreja em um período de 1 mês sem nenhum tipo
+    de pedido formal para a administração. Depois de 1 mês, o
+    administrador deve receber um pedido formal para alterar o nome.
+    Este pedido deve acontecer na própria interface de Configuração de
+    Conta e Dados Eclesiásticos. Qualquer usuário deve poder atualizar
+    os seguintes dados originais de seu cadastro:</p>
+  <ul>
+    <li>Nome da Comunidade de Fé (Igreja).</li>
+    <li>Endereço da Comunidade de Fé (Endereço 1, Endereço 2, País,
+      Estado/Província, Cidade e CEP ou Código Postal).</li>
+    <li>Website da Comunidade de Fé.</li>
+    <li>Telefone da Igreja.</li>
+    <li>Nome do Pastor responsável.</li>
+    <li>Telefone do Pastor.</li>
+  </ul>
+  <h4><strong>15.4 Validações e Segurança de Conta (RF 15.4)</strong></h4>
+  <ul>
+    <li>O sistema deve validar se o novo e-mail informado já não está
+      em uso por outro usuário na plataforma.</li>
+    <li>As alterações de dados sensíveis (Senha) devem gerar uma
+      notificação de segurança para o e-mail do usuário.</li>
+  </ul>
+  <h4><strong>15.5 Exclusão de Conta e Regras de Soft Delete (RF 15.5)</strong></h4>
+  <p>O sistema deve lidar com o encerramento de contas seguindo as
+    seguintes regras baseadas no tipo de usuário e contexto:</p>
+  <ul>
+    <li><strong>Usuários Comuns (Apoiadores):</strong> Caso optem por
+      excluir suas contas voluntariamente, os usuários comuns poderão ser
+      deletados normalmente de forma definitiva (hard delete).</li>
+    <li><strong>Missionários:</strong> Os missionários que optarem por
+      encerrar suas contas sempre farão um "soft delete" (exclusão
+      lógica), sem tempo de expiração, onde os dados são preservados
+      internamente, mas o perfil fica oculto e inacessível ao
+      público.</li>
+    <li><strong>Soft Delete por Denúncias:</strong> Em casos de
+      penalidade via denúncias (conforme Requisito 16), o "soft delete"
+      acontece de forma compulsória tanto para missionários quanto para
+      usuários comuns. Nestes casos específicos de moderação, suas contas
+      podem ser reativadas futuramente pela administração.</li>
+  </ul>
+  <h3 id="rf-16"><strong>16. Sistema de Denúncias</strong></h3>
+  <h4><strong>16.1 Denúncia de Perfis (RF 16.1)</strong></h4>
+  <p>O sistema deve permitir que as pessoas denunciem qualquer perfil
+    (seja ele um missionário, administrador ou usuário comum) uma única
+    vez. Para isto, deve haver um botão <strong>menu kebab</strong> no
+    canto superior direito no cabeçalho do perfil. Ao clicar neste
+    botão, deve abrir uma janela modal com o botão
+    “<strong>Denunciar</strong>”. Ao clicar no botão
+    “<strong>Denunciar”</strong> da janela modal, inicia-se o fluxo de
+    denúncia.</p>
+  <ul>
+    <li><em>Consulte o design no link:</em> <a href="https://gong-duck-06909014.figma.site/">Design do botão de
+        denúncia</a></li>
+  </ul>
+  <h4><strong>16.2 Denúncia de Projetos de Impacto (RF 16.2)</strong></h4>
+  <p>O sistema deve permitir que as pessoas denunciem qualquer perfil
+    uma única vez. Para isto, cada contêiner de <strong>Projeto de
+      Impacto</strong> no perfil do missionário deve possuir um botão de
+    opções (ícone de "3 pontos") que, ao ser clicado, abre uma janela
+    modal contendo o botão "Denunciar". Ao clicar no botão
+    “<strong>Denunciar</strong>” da janela modal, inicia-se o fluxo de
+    denúncia.</p>
+  <ul>
+    <li><em>Consulte o design no link:</em> <a href="https://gong-duck-06909014.figma.site/">Design do botão de
+        denúncia</a></li>
+  </ul>
+  <h4><strong>16.3 Denúncia de Postagens (RF 16.3)</strong></h4>
+  <p>O sistema deve permitir que as pessoas denunciem qualquer perfil
+    uma única vez. Para isto, cada postagem no feed do missionário deve
+    possuir um botão de opções (ícone de "3 pontos") que, ao ser
+    clicado, abre uma janela modal contendo o botão
+    "<strong>Denunciar</strong>". Ao clicar no botão de
+    “<strong>Denunciar</strong>”, inicia-se o fluxo de denúncia.</p>
+  <ul>
+    <li><em>Consulte o design no link:</em> <a href="https://gong-duck-06909014.figma.site/">Design do botão de
+        denúncia</a></li>
+  </ul>
+  <h4><strong>16.4 Fluxo da Janela Modal de Denúncia (RF 16.4)</strong></h4>
+  <p>Ao abrir a janela modal de denúncia, o sistema deve exibir um
+    cabeçalho com o título "Denunciar" acompanhado de um botão "X" no
+    canto superior direito para fechar a tela. A modal deve apresentar
+    a pergunta "Por que você está denunciando este perfil?" acompanhada
+    de uma lista de seleção única (botões de rádio) com as seguintes
+    opções para o usuário marcar, sendo obrigatório marcar uma das
+    opções:</p>
+  <ul>
+    <li>Conteúdo falso ou enganoso</li>
+    <li>Spam ou conteúdo indesejado</li>
+    <li>Discurso de ódio ou violência</li>
+    <li>Assédio ou bullying</li>
+    <li>Outro (Caso escolha esta opção, um campo de entrada de texto
+      com o título “Escreva a razão da Denúncia” com limite de 250
+      palavras deve ser exibido ao usuário)</li>
+  </ul>
+  <p>Após selecionar um motivo, o usuário deverá clicar no botão
+    principal de confirmação com o texto "DENUNCIAR", localizado na
+    parte inferior da modal. O sistema deve processar a requisição e
+    emitir um dos seguintes feedbacks visuais in formato "toast":</p>
+  <ul>
+    <li><strong>Cenário de Sucesso:</strong> Caso a denúncia seja
+      registrada corretamente no banco de dados, a janela modal deve ser
+      fechada automaticamente e um <em>toast</em> de sucesso deve ser
+      exibido (exemplo: <em>"Denúncia enviada com sucesso"</em>).</li>
+    <li><strong>Cenário de Falha:</strong> Caso ocorra um erro de
+      processamento, falha na API ou erro de conexão, a janela modal deve
+      ser fechada e um <em>toast</em> de erro/alerta deve ser exibido
+      (exemplo: <em>"Não foi possível enviar sua denúncia. Tente
+        novamente mais tarde"</em>).</li>
+  </ul>
+  <h4><strong>16.5 Suspensão por Acúmulo (Soft Delete) (RF 16.5)</strong></h4>
+  <p>O acúmulo de 10 denúncias diferentes relacionadas a um mesmo
+    perfil (somando denúncias de perfil, projetos e postagens
+    provenientes de <strong>usuários diferentes</strong>) fará com que
+    o sistema aplique automaticamente um "soft delete" na conta
+    infratora, atribuindo a ela uma tag de suspensão e alterando sua
+    "role" para suspensa.</p>
+  <h4><strong>16.6 Alertas de Suspensão (RF 16.6)</strong></h4>
+  <p>A aplicação do soft delete por denúncia deve emitir um alerta
+    automático via e-mail para a equipe de administradores da
+    plataforma e também para o missionário ou usuário que sofreu a
+    suspensão. Além disso, o painel de denunciados do Administrador
+    deve ser atualizado com a nova suspensão.</p>
+  <h3 id="rf-17"><strong>17. Administração do Sistema</strong></h3>
+  <h4><strong>17.1 Cadastro de Administrador (RF 17.1)</strong></h4>
+  <p>O sistema <strong>não deve</strong> permitir o auto-cadastro de
+    administradores através da interface pública. A criação de contas
+    com privilégios administrativos deve ser restrita, realizada via
+    provisionamento interno (diretamente na base de dados) ou
+    pré-configuração do sistema, garantindo segurança e controle de
+    acesso.</p>
+  <h4><strong>17.2 Autenticação Administrativa (RF 17.2)</strong></h4>
+  <p>O sistema deve possuir uma rota ou área de login distinta ou
+    validadora de perfil. No momento da autenticação, o sistema deve
+    verificar explicitamente se o usuário possui a função
+    (<em>role</em>) de "Administrador". Caso o usuário não possua essa
+    credencial, o acesso ao painel de gestão deve ser negado, mesmo que
+    as credenciais de e-mail e senha estejam corretas.</p>
+  <h4><strong>17.3 Privilégios (RF 17.3)</strong></h4>
+  <p>Somente usuários validados como administradores podem acessar as
+    funcionalidades de aprovação de missionários e gestão de
+    usuários.</p>
+  <h3 id="rf-18"><strong>18. Painel Administrativo</strong></h3>
+  <h4><strong>18.1 Listagem de Solicitações Pendentes (RF
+      18.1)</strong></h4>
+  <p>Após a autenticação bem-sucedida com perfil administrativo, o
+    sistema deve redirecionar o usuário para o Painel de Aprovação.
+    Esta interface deve exibir uma listagem (paginada) de todos os
+    registros de missionários que possuem o status ou identificador de
+    "pendente" no sistema.</p>
+  <h4><strong>18.2 Interface de Aprovação (RF 18.2)</strong></h4>
+  <p>Para cada item da listagem (representado visualmente como um
+    <em>card</em> ou linha de tabela), o sistema deve apresentar:
+  </p>
+  <ul>
+    <li>As informações básicas do missionário ou projeto (Nome,
+      Comunidade de Fé, etc.).</li>
+    <li>Um botão ou ação explícita de "Aprovar".</li>
+  </ul>
+  <h4><strong>18.3 Processamento da Aprovação (RF 18.3)</strong></h4>
+  <p>Ao acionar a aprovação de um missionário específico, o sistema
+    deve executar as seguintes ações em sequência:</p>
+  <h5><strong>18.3.1 Atualização de Status (RF 18.3.1)</strong></h5>
+  <p>Alterar o registro do missionário na base de dados, efetivando-o
+    como um usuário ativo da plataforma apto a realizar login.</p>
+  <h5><strong>18.3.2 Notificação Automática (Boas-vindas) (RF
+      18.3.2)</strong></h5>
+  <p>Concluída a aprovação, o sistema deve enviar automaticamente um
+    e-mail para o endereço cadastrado do missionário contendo uma
+    mensagem de parabenização pela aceitação na plataforma.</p>
+  <h4><strong>18.4 Gerenciamento de Campanhas de Divulgação (RF
+      18.4</strong></h4>
+  <p>O painel administrativo deve possuir uma aba dedicada à
+    "Campanhas", permitindo ao administrador construir uma campanha e
+    uma lista curada de projetos associados que serão exibidos com
+    prioridade na seção "Explore novos projetos" dos usuários, além de
+    criar uma página para a Campanha.</p>
+  <h5>18.4.1 Listagem de Campanhas (RF 18.4.1)</h5>
+  <p>O sistema deve apresentar uma listagem paginada contendo todas
+    as campanhas cadastradas, exibindo no mínimo:</p>
+  <ul>
+    <li>Título;</li>
+    <li>Status (Rascunho, Publicada ou Arquivada);</li>
+    <li>Quantidade de Projetos de Impacto associados;</li>
+    <li>Data de publicação;</li>
+    <li>Data de encerramento (quando existir).</li>
+  </ul>
+  <h5>18.4.2 Operações Administrativas (RF 18.4.2)</h5>
+  <p>O administrador deve poder:</p>
+  <ul>
+    <li>Criar campanhas;</li>
+    <li>Editar campanhas;</li>
+    <li>Publicar campanhas;</li>
+    <li>Arquivar campanhas;</li>
+    <li>Excluir campanhas;</li>
+    <li>Duplicar campanhas.</li>
+  </ul>
+  <h5>18.4.3 Associação de Projetos (RF 18.4.3)</h5>
+  <p>Durante a edição de uma campanha, o administrador deve poder
+    pesquisar Projetos de Impacto pelo nome e associar ou remover
+    projetos da campanha.</p>
+  <p>O sistema não deve permitir que um mesmo projeto seja associado
+    mais de uma vez à mesma campanha.</p>
+  <h5>18.4.4 Controle de Publicação (RF 18.4.4)</h5>
+  <p>O administrador deve poder alterar o estado da campanha
+    entre:</p>
+  <ul>
+    <li>Rascunho.</li>
+    <li>Publicada.</li>
+    <li>Arquivada.</li>
+  </ul>
+  <p>Somente campanhas publicadas poderão ser exibidas aos usuários
+    da plataforma.</p>
+  <h5>18.4.5 Ordenação de Destaques (RF 18.4.5)</h5>
+  <p>A lista de destaques da campanha deve possuir um botão "Remover", permitindo a exclusão individual de uma campanha da seleção, além de um botão "Esvaziar Lista" que, mediante confirmação, remove todos os projetos da seleção atual de uma só vez.</p>
+  <h4><strong>18.5 Gerenciamento de Denúncias e Reativação de Contas
+      (RF 18.5)</strong></h4>
+  <h5><strong>18.18.1 Aba de Denunciados (RF 18.18.1)</strong></h5>
+  <p>O painel do administrador deve possuir uma aba exclusiva chamada
+    "Denunciados", contendo uma lista de todos os usuários e
+    missionários que entraram em estado de soft delete devido ao
+    acúmulo de denúncias. Esta lista deve conter:</p>
+  <ul>
+    <li>A foto de perfil, nome, nome de usuário e email dos
+      denunciados.</li>
+    <li>Ao clicar em um item da lista, deve ser exibido uma janela
+      modal com a lista de todas as <strong>10 denúncias</strong>. Cada
+      denúncia deve ser acompanhada:
+      <ol>
+        <li>do nome de usuário, nome completo e e-mail do usuário que
+          denunciou o perfil.</li>
+        <li>do motivo da denúncia (<strong>conforme modal de
+            denúncia</strong>).</li>
+      </ol>
+    </li>
+  </ul>
+  <h5><strong>18.18.2 Mecanismos de Reativação (RF 18.18.2)</strong></h5>
+  <p>Nesta aba, o administrador deve poder avaliar cada caso e
+    utilizar um mecanismo/botão para reativar a conta. A reativação
+    reverte o soft delete, remove as restrições da "role" suspensa e
+    restaura o acesso e a visibilidade do perfil na plataforma.</p>
+  <h3 id="rf-19"><strong>19. Histórico de Campanhas</strong></h3>
+  <h4><strong>19.1 Registro Histórico de Campanhas (RF 19.1)</strong></h4>
+  <p>O sistema deve manter um histórico consultável das campanhas, armazenando apenas dados textuais (string) e datas relacionadas ao ciclo de vida da campanha. Este histórico deve contemplar, no mínimo, os seguintes itens:</p>
+  <ul>
+    <li>A campanha, com suas datas inclusive de início e término;</li>
+    <li>Os Projetos de Impacto associados à campanha;</li>
+    <li>Os missionários associados a cada Projeto de Impacto vinculado.</li>
+  </ul>
+  <h4><strong>19.2 Restrição de Armazenamento (RF 19.2)</strong></h4>
+  <p>O histórico de campanhas não deve armazenar imagens, banners, capas, selos ou qualquer outro arquivo binário. Toda a persistência desse histórico deve ser limitada a informações textuais e datas, garantindo um registro leve, auditável e consistente com a rastreabilidade das campanhas.</p>
+  <h4><strong>19.3 Consulta do Histórico (RF 19.3)</strong></h4>
+  <p>O histórico deve permitir a consulta por campanha específica, exibindo os Projetos de Impacto associados e os missionários relacionados a cada projeto, respeitando o período informado pelas datas da campanha.</p>
+  <h2>🔒 Requisitos Não Funcionais por Categoria</h2>
+  <h3 id="rnf-1"><strong>1. Segurança (NF.1)</strong></h3>
+  <h4 id="rnf-1-1"><strong>1.1 Criptografia de Dados Sensíveis (NF
+      1.1)</strong></h4>
+  <p>O sistema deve garantir a proteção de dados sensíveis por meio
+    de criptografia adequada:</p>
+  <ul>
+    <li>As senhas devem ser armazenadas utilizando algoritmos de
+      <em>hash</em> fortes (ex: Argon2 ou Bcrypt).
+    </li>
+    <li>Dados bancários (Conta, Agência) armazenados para exibição (RF 12.1.2) devem ser criptografados em repouso no
+      banco de dados
+      (AES-256).</li>
+  </ul>
+  <h4 id="rnf-1-2"><strong>1.2 Conformidade com a LGPD (NF 1.2)</strong></h4>
+  <p>O sistema deve atender às exigências da Lei Geral de Proteção de
+    Dados (LGPD):</p>
+  <ul>
+    <li>Garantir o direito ao esquecimento (exclusão permanente de
+      dados pessoais mediante solicitação do titular).</li>
+    <li>Permitir a exportação de dados pessoais pelo usuário.</li>
+    <li>Tratar adequadamente dados pessoais sensíveis, como informações
+      de religião (considerado dado sensível pela LGPD) e dados
+      financeiros.</li>
+  </ul>
+  <h4 id="rnf-1-3"><strong>1.3 Proteção contra Ataques de Força Bruta (NF
+      1.3)</strong></h4>
+  <p>O sistema deve proteger as rotas de autenticação contra ataques
+    automatizados:</p>
+  <ul>
+    <li>As rotas de login (RF 1.1) e redefinição de senha (RF 1.2)
+      devem possuir mecanismos de <em>Rate Limiting</em> (limite de
+      tentativas por IP/tempo).</li>
+    <li>Bloqueio temporário de acesso após número excessivo de
+      tentativas falhas.</li>
+  </ul>
+  <h4 id="rnf-1-4"><strong>1.4 Comunicação Segura (NF 1.4)</strong></h4>
+  <p>Todo o tráfego de dados entre o cliente e o servidor deve ser
+    obrigatoriamente seguro:</p>
+  <ul>
+    <li>Utilização obrigatória do protocolo HTTPS (TLS 1.2 ou
+      superior).</li>
+    <li>Certificados SSL/TLS válidos e atualizados em todos os
+      ambientes de produção.</li>
+  </ul>
+  <hr>
+  <h3 id="rnf-2"><strong>2. Desempenho (NF.2)</strong></h3>
+  <h4 id="rnf-2-1"><strong>2.1 Otimização de Imagens (NF 2.1)</strong></h4>
+  <p>O sistema deve realizar compressão automática de imagens para
+    garantir carregamento eficiente:</p>
+  <ul>
+    <li>Compressão automática de imagens de até 5MB para menos de
+      200KB.</li>
+    <li>Aplicável sem perda perceptível de qualidade visual.</li>
+    <li>Garantir carregamento rápido em redes móveis (3G/4G).</li>
+  </ul>
+  <h4 id="rnf-2-2"><strong>2.2 Tempo de Carregamento (NF 2.2)</strong></h4>
+  <p>As páginas principais devem carregar dentro de limites de tempo
+    aceitáveis:</p>
+  <ul>
+    <li>Feed de postagens e exploração carregados em menos de 2
+      segundos.</li>
+    <li>Sob conexão 4G padrão para os primeiros 10 itens.</li>
+    <li>Implementação de Paginação por Key Cursor (baseada em
+      <em>timestamp</em> ou ID).
+    </li>
+  </ul>
+  <h4 id="rnf-2-3"><strong>2.3 Paginação e Lazy Loading (NF 2.3)</strong></h4>
+  <p>O sistema deve implementar estratégias de carregamento eficiente
+    para listas extensas:</p>
+  <ul>
+    <li>Retorno máximo de 20 itens por requisição da API.</li>
+    <li>Aplicável para listagens extensas (Seguidores, Feed, Resultados
+      de Busca).</li>
+    <li>Paginação no backend ou "scroll infinito" no frontend.</li>
+  </ul>
+  <h4 id="rnf-2-4"><strong>2.4 Caching de Alto Volume (NF 2.4)</strong></h4>
+  <p>O sistema deve utilizar soluções de caching em memória para
+    dados de alta demanda:</p>
+  <ul>
+    <li>Utilização de Redis como solução de caching em memória.</li>
+    <li>Armazenamento em cache de listas de Agências/Comunidades de
+      Fé.</li>
+    <li>Armazenamento em cache de contadores de Seguidores/Likes.</li>
+    <li>Armazenamento em cache de resultados da curadoria de
+      projetos.</li>
+  </ul>
+  <h4 id="rnf-2-5"><strong>2.5 Escalabilidade (NF 2.5)</strong></h4>
+  <p>O sistema deve ser capaz de suportar picos de acesso sem
+    degradação significativa:</p>
+  <ul>
+    <li>Capacidade de lidar com picos de acesso de até 1.000 usuários
+      ativos simultaneamente.</li>
+    <li>O tempo de resposta não deve exceder em mais de 20% o tempo
+      médio de resposta nesses picos.</li>
+  </ul>
+  <hr>
+  <h3 id="rnf-3"><strong>3. Usabilidade (NF.3)</strong></h3>
+  <h4 id="rnf-3-1"><strong>3.1 Feedback Visual do Sistema (NF 3.1)</strong></h4>
+  <p>Toda ação que altere o estado do sistema deve fornecer retorno
+    imediato ao usuário:</p>
+  <ul>
+    <li>Ações como Salvar, Doar e Postar devem prover feedback visual
+      imediato (ex: <em>toasts</em>, <em>spinners</em> de
+      carregamento).</li>
+    <li>O feedback deve ser exibido em menos de 100ms após o clique do
+      usuário.</li>
+  </ul>
+  <hr>
+  <h3 id="rnf-4"><strong>4. Manutenibilidade (NF.4)</strong></h3>
+  <h4 id="rnf-4-1"><strong>4.1 Arquitetura Evolutiva (NF 4.1)</strong></h4>
+  <p>O código deve ser estruturado de forma a permitir evolução
+    contínua sem impacto no núcleo:</p>
+  <ul>
+    <li>Estruturação modular (ex: Clean Architecture ou
+      Microsserviços).</li>
+    <li>Novas <em>features</em> (como comentários futuros e gateway de
+      pagamento nativo) devem ser acopladas sem refatoração profunda do
+      núcleo.</li>
+  </ul>
+  <h4 id="rnf-4-2"><strong>4.2 Documentação da API (NF 4.2)</strong></h4>
+  <p>Caso o front-end seja separado do back-end, a API deve ser
+    documentada adequadamente:</p>
+  <ul>
+    <li>Utilização de ferramentas como Swagger/OpenAPI para
+      documentação da API.</li>
+    <li>Facilitar a manutenção e futura criação de um aplicativo móvel
+      nativo.</li>
+  </ul>
+  <h4 id="rnf-4-3"><strong>4.3 Monitoramento de Erros (NF 4.3)</strong></h4>
+  <p>O sistema deve possuir captura centralizada de erros para
+    diagnóstico e resolução rápida:</p>
+  <ul>
+    <li>Utilização de ferramentas como Sentry ou GlitchTip.</li>
+    <li>Registro de todas as exceções não tratadas de
+      <em>front-end</em> e <em>back-end</em>.
+    </li>
+  </ul>
+  <h4 id="rnf-4-4"><strong>4.4 Alertas de Erro (NF 4.4)</strong></h4>
+  <p>O sistema deve gerar alertas proativos para erros críticos:</p>
+  <ul>
+    <li>Geração de alertas em tempo real no canal de comunicação da
+      equipe.</li>
+    <li>Prioridade para qualquer erro classificado como crítico ou que
+      afete o fluxo de doação.</li>
+  </ul>
+  <h4 id="rnf-4-5"><strong>4.5 Traçabilidade – LGPD (NF 4.5)</strong></h4>
+  <p>O sistema deve coletar informações contextuais no momento de
+    falhas para diagnóstico:</p>
+  <ul>
+    <li>Coleta do contexto do usuário (ID, tipo de conta) no momento da
+      falha.</li>
+    <li>Registro da trilha de navegação (<em>breadcrumb</em>) do
+      usuário.</li>
+    <li>Respeito à privacidade dos dados, em conformidade com a
+      LGPD.</li>
+  </ul>
+  <hr>
+  <h3 id="rnf-5"><strong>5. Confiabilidade (NF.5)</strong></h3>
+  <h4 id="rnf-5-1"><strong>5.1 Disponibilidade – Uptime (NF 5.1)</strong></h4>
+  <p>O sistema deve operar com alta disponibilidade para garantir
+    acessibilidade contínua:</p>
+  <ul>
+    <li>Disponibilidade mínima de 99,5% durante horário comercial e
+      finais de semana (picos de uso em igrejas/cultos).</li>
+    <li>Garantia de que a página de doação esteja sempre
+      acessível.</li>
+  </ul>
+  <h4 id="rnf-5-2"><strong>5.2 Integridade Transacional – Atomicidade (NF
+      5.2)</strong></h4>
+  <p>O sistema deve garantir transações atômicas para operações
+    críticas de múltiplos passos:</p>
+  <ul>
+    <li>Qualquer falha intermediária (ex: erro no envio de e-mail após
+      atualizar banco de dados) deve disparar rollback total das
+      alterações no banco de dados.</li>
+    <li>Prevenção de estados inconsistentes em todo o ciclo de vida da
+      transação.</li>
+  </ul>
+  <h4 id="rnf-5-3"><strong>5.3 Integridade de E-mails (NF 5.3)</strong></h4>
+  <p>O envio de e-mails críticos deve ser confiável e auditável:</p>
+  <ul>
+    <li>Envio de e-mails críticos (Aprovação de Missionário,
+      Redefinição de Senha) via serviço de e-mail transacional (SMTP
+      dedicado).</li>
+    <li>Taxa de entrega garantida superior a 98%.</li>
+  </ul>
+  <hr>
+  <h3 id="rnf-6"><strong>6. Portabilidade (NF.6)</strong></h3>
+  <h4 id="rnf-6-1"><strong>6.1 Responsividade Móvel (NF 6.1)</strong></h4>
+  <p>Considerando que missionários em campo podem ter apenas acesso
+    via celular, o sistema deve ser totalmente responsivo:</p>
+  <ul>
+    <li>100% das interfaces devem ser responsivas e funcionais em
+      dispositivos móveis.</li>
+    <li>Largura mínima suportada de 320px.</li>
+    <li>Atenção especial para as telas de criação de post e edição de
+      perfil.</li>
+  </ul>
+    </main>
+  </div>
+
+  <div id="btn-top-container">
+    <div id="btn-top-tooltip">Voltar ao topo</div>
+    <button id="btn-top" title="Voltar ao topo">▲</button>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
