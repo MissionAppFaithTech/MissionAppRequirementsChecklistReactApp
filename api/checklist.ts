@@ -29,7 +29,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  const hasKv = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+  const hasKv = Boolean(
+    (process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL) &&
+    (process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN)
+  );
 
   if (req.method === 'GET') {
     if (!hasKv) {

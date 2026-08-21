@@ -91,18 +91,21 @@ git push origin main
 
 ---
 
-### Step 3: Create & Link Vercel KV Database
+### Step 3: Create & Link Upstash Redis (Vercel KV) Database
 
-1. In the Vercel Dashboard, go to **Storage** in the top navigation bar (or select your project → **Storage** tab).
-2. Click **Create Database** and select **KV** (or **Upstash Redis**).
-3. Name your database (e.g., `mission-app-kv`).
-4. Select your preferred primary region (e.g., `iad1` Washington, D.C. or closest to your users).
-5. Click **Create**.
-6. Once created, click **Connect to Project** and select your project (`mission-app-requirements-checklist`).
-7. Select environments: **Production**, **Preview**, and **Development**.
-8. Click **Connect**.
+Vercel recently migrated first-party Vercel KV to the **Upstash Redis** integration.
 
-> 🎉 **Vercel will automatically inject `KV_REST_API_URL`, `KV_REST_API_TOKEN`, etc., into your project's Environment Variables!**
+1. In the Vercel Storage modal (shown in your screenshot), select **Upstash** (or **Redis** under Marketplace Database Providers).
+2. Click **Continue**.
+3. Log in or authorize Upstash (free tier with 10,000 requests/day).
+4. Click **Create Database**:
+   - Name: `mission-app-kv` (or any name)
+   - Primary Region: Choose the region closest to your users.
+5. Click **Connect to Project** and select your project (`mission-app-requirements-checklist`).
+6. Select environments: **Production**, **Preview**, and **Development**.
+7. Click **Connect**.
+
+> 🎉 **Vercel will automatically inject `KV_REST_API_URL` / `UPSTASH_REDIS_REST_URL` and `KV_REST_API_TOKEN` / `UPSTASH_REDIS_REST_TOKEN` into your project's Environment Variables!**
 
 ---
 
