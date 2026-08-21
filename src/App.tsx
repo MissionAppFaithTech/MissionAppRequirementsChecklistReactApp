@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { ArrowUp, Check, Menu, RotateCcw, Search, X } from 'lucide-react';
+import { ArrowUp, Check, Menu, Search, X } from 'lucide-react';
 import { allRequirements, functionalRequirements, nonFunctionalRequirements, normalizeText, type RequirementNode } from '@/data/requirements';
 import {
   CHECKLIST_BACK_KEY,
@@ -210,33 +210,12 @@ function NavGroup({ label, nodes, query, activeId, onNavigate }: { label: string
   );
 }
 
-function ConfirmReset({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onCancel(); };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onCancel]);
-  return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}>
-      <section className="modal" role="dialog" aria-modal="true" aria-labelledby="reset-title">
-        <h2 id="reset-title">Começar de novo?</h2>
-        <p>Todos os itens marcados (back e full) serão desmarcados neste navegador e na nuvem. Esta ação não pode ser desfeita.</p>
-        <div className="modal-actions">
-          <button className="modal-cancel" type="button" onClick={onCancel}>Cancelar</button>
-          <button className="modal-danger" type="button" onClick={onConfirm}>Limpar checklists</button>
-        </div>
-      </section>
-    </div>
-  );
-}
-
 function App() {
   const [backTsState, setBackTsState] = useState<TimestampedChecklistState>(() => loadTimestampedChecklist(CHECKLIST_BACK_KEY));
   const [fullTsState, setFullTsState] = useState<TimestampedChecklistState>(() => loadTimestampedChecklist(CHECKLIST_FULL_KEY));
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<FilterMode>('all');
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [resetOpen, setResetOpen] = useState(false);
   const [activeId, setActiveId] = useState('rf-1');
   const [showTop, setShowTop] = useState(false);
 
@@ -310,15 +289,6 @@ function App() {
     syncCloudItems(updates);
   };
 
-  const reset = () => {
-    setBackTsState({});
-    setFullTsState({});
-    saveTimestampedChecklist({}, CHECKLIST_BACK_KEY);
-    saveTimestampedChecklist({}, CHECKLIST_FULL_KEY);
-    setResetOpen(false);
-    resetCloudState();
-  };
-
   const visibleFunctional = useMemo(() => functionalRequirements.map((node) => filterNode(node, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[], [query, mode, backState, fullState]);
   const visibleNonFunctional = useMemo(() => nonFunctionalRequirements.map((node) => filterNode(node, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[], [query, mode, backState, fullState]);
   const resultCount = visibleFunctional.length + visibleNonFunctional.length;
@@ -341,7 +311,6 @@ function App() {
               <div className="progress-track"><div className="progress-fill progress-fill--full" style={{ width: `${fullProgress.percent}%` }} /></div>
             </div>
           </div>
-          <button className="reset-button" type="button" onClick={() => setResetOpen(true)} aria-label="Limpar checklists"><RotateCcw size={14} /><span>Limpar</span></button>
           <button className="mobile-menu" type="button" onClick={() => setMobileOpen((open) => !open)} aria-expanded={mobileOpen} aria-controls="doc-sidebar">
             {mobileOpen ? <X size={16} /> : <Menu size={16} />} <span>Sumário</span>
           </button>
@@ -461,7 +430,6 @@ function App() {
         </main>
       </div>
       <button className={`back-top${showTop ? ' visible' : ''}`} type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Voltar ao topo"><ArrowUp size={18} /></button>
-      {resetOpen && <ConfirmReset onCancel={() => setResetOpen(false)} onConfirm={reset} />}
     </div>
   );
 }
