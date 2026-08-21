@@ -214,11 +214,28 @@ export const functionalRequirements: RequirementNode[] = [
       item('rf-18-5-1', 'RF 18.5.1', 'Aba de denunciados', 'Exibe identidade, contato e motivos das denúncias.'),
       item('rf-18-5-2', 'RF 18.5.2', 'Mecanismos de reativação', 'Restaura visibilidade e remove restrições.'),
     ]),
+    item('rf-18-6', 'RF 18.6', 'Gerenciamento de Avaliadores', 'Aba dedicada à gestão de avaliadores, acessível somente por Administradores.', [
+      item('rf-18-6-1', 'RF 18.6.1', 'Aba de avaliadores', 'Listagem paginada com nome, e-mail, telefone, data de criação e status.'),
+      item('rf-18-6-2', 'RF 18.6.2', 'Operações administrativas', 'Criar, editar e revogar acesso de avaliadores, preservando histórico de ações.'),
+    ]),
   ]),
   item('rf-19', 'RF 19', 'Histórico de Campanhas', 'Registro leve, auditável e consultável do ciclo das campanhas.', [
     item('rf-19-1', 'RF 19.1', 'Registro histórico', 'Campanha, datas, projetos associados e missionários relacionados.'),
     item('rf-19-2', 'RF 19.2', 'Restrição de armazenamento', 'Histórico guarda apenas textos e datas, nunca arquivos binários.'),
     item('rf-19-3', 'RF 19.3', 'Consulta do histórico', 'Consulta por campanha respeitando o período informado.'),
+  ]),
+  item('rf-20', 'RF 20', 'Papéis e Privilégios do Avaliador', 'Função dedicada a aprovar missionários e gerenciar campanhas e denúncias, sem privilégios de administrador.', [
+    item('rf-20-1', 'RF 20.1', 'Definição da role', 'Função distinta de Administrador para aprovação de missionários, sem perfil público nem presença na busca.'),
+    item('rf-20-2', 'RF 20.2', 'Dados da conta', 'Mesmos dados de conta administrativa (RF 17.1), diferindo exclusivamente no valor da role.'),
+    item('rf-20-3', 'RF 20.3', 'Criação da conta', 'Sem auto-cadastro público; criada por Administrador na aba de Avaliadores (RF 18.6).'),
+    item('rf-20-4', 'RF 20.4', 'Autenticação e acesso ao painel', 'Autentica-se pela rota do RF 17.2, aceitando Administrador e Avaliador para liberar o painel.'),
+    item('rf-20-5', 'RF 20.5', 'Privilégios no painel administrativo', 'Acessa aprovação de missionários, gerenciamento de campanhas e denúncias/reativação.', [
+      item('rf-20-5-1', 'RF 20.5.1', 'Aprovação de missionários', 'Visualiza solicitações pendentes e aprova cadastros (RF 18.1, 18.2 e 18.3).'),
+      item('rf-20-5-2', 'RF 20.5.2', 'Gerenciamento de campanhas', 'Cria, edita, publica, arquiva, exclui e duplica campanhas, associa projetos e ordena destaques (RF 18.4).'),
+      item('rf-20-5-3', 'RF 20.5.3', 'Gerenciamento de denúncias e reativação', 'Consulta a aba de denunciados, avalia casos e reativa contas suspensas por acúmulo de denúncias (RF 18.5).'),
+    ]),
+    item('rf-20-6', 'RF 20.6', 'Restrições do avaliador', 'Sem permissão para criar/editar contas administrativas, acessar a aba de Avaliadores (RF 18.6) nem gerenciar alteração de nome de usuário (RF 15.3).'),
+    item('rf-20-7', 'RF 20.7', 'Registro de autoria das ações', 'Armazena conta responsável, data e hora de cada aprovação, reativação e operação de campanha (NF 4.5).'),
   ]),
 ];
 
@@ -244,7 +261,11 @@ export const nonFunctionalRequirements: RequirementNode[] = [
     item('rnf-4-2', 'NF 4.2', 'Documentação da API', 'Swagger ou OpenAPI facilita manutenção e futuro app móvel.'),
     item('rnf-4-3', 'NF 4.3', 'Monitoramento de erros', 'Sentry ou GlitchTip captura exceções de front e back-end.'),
     item('rnf-4-4', 'NF 4.4', 'Alertas de erro', 'Alerta em tempo real para falhas críticas, sobretudo doações.'),
-    item('rnf-4-5', 'NF 4.5', 'Traçabilidade LGPD', 'Coleta contexto e trilha de navegação respeitando privacidade.'),
+    item('rnf-4-5', 'NF 4.5', 'Traçabilidade – LGPD', 'Coleta informações contextuais no momento de falhas para diagnóstico, respeitando a privacidade dos dados.', [
+      item('rnf-4-5-context', 'NF 4.5.a', 'Coleta do contexto do usuário', 'Registra ID do usuário e tipo de conta no momento da falha.'),
+      item('rnf-4-5-breadcrumb', 'NF 4.5.b', 'Registro da trilha de navegação', 'Armazena breadcrumb das ações do usuário para diagnóstico.'),
+      item('rnf-4-5-privacy', 'NF 4.5.c', 'Respeito à privacidade dos dados', 'Garante a proteção e privacidade dos dados em conformidade com a LGPD.'),
+    ]),
   ]),
   item('rnf-5', 'NF.5', 'Confiabilidade', 'Disponibilidade, atomicidade e entregabilidade.', [
     item('rnf-5-1', 'NF 5.1', 'Disponibilidade e uptime', 'Mínimo de 99,5% e página de doação sempre acessível.'),

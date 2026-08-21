@@ -392,7 +392,7 @@ function App() {
           {query && !resultCount ? <div className="empty-state"><strong>Nenhum requisito encontrado.</strong>Tente outra palavra ou remova o filtro de busca.</div> : (
             <>
               <section aria-labelledby="functional-heading">
-                <div className="section-heading"><h2 id="functional-heading">Requisitos funcionais</h2><p>RF 01 — RF 19</p></div>
+                <div className="section-heading"><h2 id="functional-heading">Requisitos funcionais</h2><p>RF 01 — RF 20</p></div>
                 <div className="req-list">
                   {visibleFunctional.map((node) => (
                     <RequirementCard
