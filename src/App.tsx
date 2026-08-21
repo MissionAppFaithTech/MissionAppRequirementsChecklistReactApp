@@ -1,9 +1,21 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { ArrowUp, Check, Menu, RotateCcw, Search, X } from 'lucide-react';
 import { allRequirements, functionalRequirements, nonFunctionalRequirements, normalizeText, type RequirementNode } from '@/data/requirements';
-import { countProgress, loadChecklist, saveChecklist, toggleChecklist, type ChecklistState } from '@/lib/checklist';
+import {
+  CHECKLIST_BACK_KEY,
+  CHECKLIST_FULL_KEY,
+  countProgress,
+  getLockedIds,
+  loadChecklist,
+  saveChecklist,
+  toggleChecklist,
+  type ChecklistState,
+} from '@/lib/checklist';
 
 type FilterMode = 'all' | 'open' | 'done';
+type CheckVariant = 'back' | 'full';
+
+const LOCK_TOOLTIP = 'Para selecionar esta opção, desmarque a outra';
 
 function nodeMatches(node: RequirementNode, query: string): boolean {
   if (!query) return true;
@@ -11,46 +23,104 @@ function nodeMatches(node: RequirementNode, query: string): boolean {
   return haystack.includes(normalizeText(query)) || Boolean(node.children?.some((child) => nodeMatches(child, query)));
 }
 
-function filterNode(node: RequirementNode, query: string, mode: FilterMode, state: ChecklistState): RequirementNode | null {
-  const children = node.children?.map((child) => filterNode(child, query, mode, state)).filter(Boolean) as RequirementNode[] | undefined;
+function filterNode(node: RequirementNode, query: string, mode: FilterMode, backState: ChecklistState, fullState: ChecklistState): RequirementNode | null {
+  const children = node.children?.map((child) => filterNode(child, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[] | undefined;
   const ownMatch = nodeMatches(node, query);
   const descendantMatch = Boolean(children?.length);
-  const statusMatch = mode === 'all' || (mode === 'done' ? Boolean(state[node.id]) || descendantMatch : !state[node.id] || descendantMatch);
+  const isDone = Boolean(backState[node.id]) || Boolean(fullState[node.id]);
+  const statusMatch = mode === 'all' || (mode === 'done' ? isDone || descendantMatch : !isDone || descendantMatch);
   if ((!ownMatch && !children?.length) || !statusMatch) return null;
   return { ...node, children };
 }
 
-function NodeCheck({ node, state, onToggle }: { node: RequirementNode; state: ChecklistState; onToggle: (id: string) => void }) {
+function NodeCheck({
+  node,
+  state,
+  locked,
+  variant,
+  onToggle,
+}: {
+  node: RequirementNode;
+  state: ChecklistState;
+  locked: boolean;
+  variant: CheckVariant;
+  onToggle: (id: string) => void;
+}) {
+  const label = variant === 'back' ? 'Back completo' : 'Back e Front completo';
   return (
-    <label className="check-wrap" title={`Marcar ${node.code}`}>
+    <label
+      className="check-wrap"
+      title={locked ? LOCK_TOOLTIP : `Marcar ${node.code} — ${label}`}
+    >
       <input
         className="check-input"
         type="checkbox"
         checked={Boolean(state[node.id])}
         onChange={() => onToggle(node.id)}
-        aria-label={`Marcar ${node.code}: ${node.title}`}
+        disabled={locked}
+        aria-label={`${label}: ${node.code} ${node.title}`}
       />
-      <span className="check-box" aria-hidden="true"><Check size={15} strokeWidth={2.7} /></span>
+      <span className={`check-box check-box--${variant}`} aria-hidden="true">
+        <Check size={15} strokeWidth={2.7} />
+      </span>
     </label>
   );
 }
 
-function NodeMeta({ node, state }: { node: RequirementNode; state: ChecklistState }) {
-  const progress = countProgress([node], state);
-  return <span className="req-count">{progress.completed}/{progress.total} feitos</span>;
+function NodeMeta({ node, backState, fullState }: { node: RequirementNode; backState: ChecklistState; fullState: ChecklistState }) {
+  const backProgress = countProgress([node], backState);
+  const fullProgress = countProgress([node], fullState);
+  return (
+    <div className="req-meta-group">
+      <span className="req-count req-count--back">{backProgress.completed}/{backProgress.total} back</span>
+      <span className="req-count req-count--full">{fullProgress.completed}/{fullProgress.total} full</span>
+    </div>
+  );
 }
 
-function SubRequirement({ node, state, onToggle }: { node: RequirementNode; state: ChecklistState; onToggle: (id: string) => void }) {
-  const done = Boolean(state[node.id]);
+function SubRequirement({
+  node,
+  backState,
+  fullState,
+  backLockedIds,
+  fullLockedIds,
+  onToggleBack,
+  onToggleFull,
+}: {
+  node: RequirementNode;
+  backState: ChecklistState;
+  fullState: ChecklistState;
+  backLockedIds: Set<string>;
+  fullLockedIds: Set<string>;
+  onToggleBack: (id: string) => void;
+  onToggleFull: (id: string) => void;
+}) {
+  const isBackDone = Boolean(backState[node.id]);
+  const isFullDone = Boolean(fullState[node.id]);
+  const stateClass = isFullDone ? ' is-full-done' : isBackDone ? ' is-back-done' : '';
   return (
-    <li className={`sub-item${done ? ' is-done' : ''}`}>
-      <NodeCheck node={node} state={state} onToggle={onToggle} />
+    <li className={`sub-item${stateClass}`}>
+      <div className="dual-check-group">
+        <NodeCheck node={node} state={backState} locked={backLockedIds.has(node.id)} variant="back" onToggle={onToggleBack} />
+        <NodeCheck node={node} state={fullState} locked={fullLockedIds.has(node.id)} variant="full" onToggle={onToggleFull} />
+      </div>
       <div>
         <div className="req-title-row"><span className="req-code">{node.code}</span><h4 className="req-title">{node.title}</h4></div>
         {node.description && <p className="req-description">{node.description}</p>}
         {node.children?.length ? (
           <ul className="sub-list">
-            {node.children.map((child) => <SubRequirement key={child.id} node={child} state={state} onToggle={onToggle} />)}
+            {node.children.map((child) => (
+              <SubRequirement
+                key={child.id}
+                node={child}
+                backState={backState}
+                fullState={fullState}
+                backLockedIds={backLockedIds}
+                fullLockedIds={fullLockedIds}
+                onToggleBack={onToggleBack}
+                onToggleFull={onToggleFull}
+              />
+            ))}
           </ul>
         ) : null}
       </div>
@@ -58,22 +128,55 @@ function SubRequirement({ node, state, onToggle }: { node: RequirementNode; stat
   );
 }
 
-function RequirementCard({ node, state, onToggle }: { node: RequirementNode; state: ChecklistState; onToggle: (id: string) => void }) {
-  const progress = countProgress([node], state);
-  const done = progress.completed === progress.total;
+function RequirementCard({
+  node,
+  backState,
+  fullState,
+  backLockedIds,
+  fullLockedIds,
+  onToggleBack,
+  onToggleFull,
+}: {
+  node: RequirementNode;
+  backState: ChecklistState;
+  fullState: ChecklistState;
+  backLockedIds: Set<string>;
+  fullLockedIds: Set<string>;
+  onToggleBack: (id: string) => void;
+  onToggleFull: (id: string) => void;
+}) {
+  const backProgress = countProgress([node], backState);
+  const fullProgress = countProgress([node], fullState);
+  const isFullDone = fullProgress.completed === fullProgress.total;
+  const isBackDone = backProgress.completed === backProgress.total;
+  const stateClass = isFullDone ? ' is-full-done' : isBackDone ? ' is-back-done' : '';
   return (
-    <article id={node.id} className={`req-card${done ? ' is-done' : ''}`}>
+    <article id={node.id} className={`req-card${stateClass}`}>
       <div className="req-card-head">
-        <NodeCheck node={node} state={state} onToggle={onToggle} />
+        <div className="dual-check-group">
+          <NodeCheck node={node} state={backState} locked={backLockedIds.has(node.id)} variant="back" onToggle={onToggleBack} />
+          <NodeCheck node={node} state={fullState} locked={fullLockedIds.has(node.id)} variant="full" onToggle={onToggleFull} />
+        </div>
         <div>
           <div className="req-title-row"><span className="req-code">{node.code}</span><h3 className="req-title">{node.title}</h3></div>
           {node.description && <p className="req-description">{node.description}</p>}
         </div>
-        <NodeMeta node={node} state={state} />
+        <NodeMeta node={node} backState={backState} fullState={fullState} />
       </div>
       {node.children?.length ? (
         <ul className="sub-list">
-          {node.children.map((child) => <SubRequirement key={child.id} node={child} state={state} onToggle={onToggle} />)}
+          {node.children.map((child) => (
+            <SubRequirement
+              key={child.id}
+              node={child}
+              backState={backState}
+              fullState={fullState}
+              backLockedIds={backLockedIds}
+              fullLockedIds={fullLockedIds}
+              onToggleBack={onToggleBack}
+              onToggleFull={onToggleFull}
+            />
+          ))}
         </ul>
       ) : null}
     </article>
@@ -110,10 +213,10 @@ function ConfirmReset({ onCancel, onConfirm }: { onCancel: () => void; onConfirm
     <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}>
       <section className="modal" role="dialog" aria-modal="true" aria-labelledby="reset-title">
         <h2 id="reset-title">Começar de novo?</h2>
-        <p>Todos os itens marcados serão desmarcados neste navegador. Esta ação não pode ser desfeita.</p>
+        <p>Todos os itens marcados (back e full) serão desmarcados neste navegador. Esta ação não pode ser desfeita.</p>
         <div className="modal-actions">
           <button className="modal-cancel" type="button" onClick={onCancel}>Cancelar</button>
-          <button className="modal-danger" type="button" onClick={onConfirm}>Limpar checklist</button>
+          <button className="modal-danger" type="button" onClick={onConfirm}>Limpar checklists</button>
         </div>
       </section>
     </div>
@@ -121,16 +224,25 @@ function ConfirmReset({ onCancel, onConfirm }: { onCancel: () => void; onConfirm
 }
 
 function App() {
-  const [state, setState] = useState<ChecklistState>(() => loadChecklist(allRequirements));
+  const [backState, setBackState] = useState<ChecklistState>(() => loadChecklist(CHECKLIST_BACK_KEY));
+  const [fullState, setFullState] = useState<ChecklistState>(() => loadChecklist(CHECKLIST_FULL_KEY));
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<FilterMode>('all');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [activeId, setActiveId] = useState('rf-1');
   const [showTop, setShowTop] = useState(false);
-  const progress = useMemo(() => countProgress(allRequirements, state), [state]);
 
-  useEffect(() => { saveChecklist(state); }, [state]);
+  const backProgress = useMemo(() => countProgress(allRequirements, backState), [backState]);
+  const fullProgress = useMemo(() => countProgress(allRequirements, fullState), [fullState]);
+
+  // Compute locked IDs: nodes checked in backState lock those IDs in the full checklist, and vice-versa
+  const backLockedIds = useMemo(() => getLockedIds(fullState, allRequirements), [fullState]);
+  const fullLockedIds = useMemo(() => getLockedIds(backState, allRequirements), [backState]);
+
+  useEffect(() => { saveChecklist(backState, CHECKLIST_BACK_KEY); }, [backState]);
+  useEffect(() => { saveChecklist(fullState, CHECKLIST_FULL_KEY); }, [fullState]);
+
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 420);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -147,10 +259,12 @@ function App() {
     return () => observer.disconnect();
   }, [query, mode]);
 
-  const toggle = (id: string) => setState((current) => toggleChecklist(current, id));
-  const reset = () => { setState({}); setResetOpen(false); };
-  const visibleFunctional = useMemo(() => functionalRequirements.map((node) => filterNode(node, query, mode, state)).filter(Boolean) as RequirementNode[], [query, mode, state]);
-  const visibleNonFunctional = useMemo(() => nonFunctionalRequirements.map((node) => filterNode(node, query, mode, state)).filter(Boolean) as RequirementNode[], [query, mode, state]);
+  const toggleBack = (id: string) => setBackState((current) => toggleChecklist(current, id));
+  const toggleFull = (id: string) => setFullState((current) => toggleChecklist(current, id));
+  const reset = () => { setBackState({}); setFullState({}); setResetOpen(false); };
+
+  const visibleFunctional = useMemo(() => functionalRequirements.map((node) => filterNode(node, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[], [query, mode, backState, fullState]);
+  const visibleNonFunctional = useMemo(() => nonFunctionalRequirements.map((node) => filterNode(node, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[], [query, mode, backState, fullState]);
   const resultCount = visibleFunctional.length + visibleNonFunctional.length;
 
   return (
@@ -161,11 +275,17 @@ function App() {
           <span className="brand-copy"><span className="brand-name">Mission App</span><span className="brand-caption">Atlas de requisitos</span></span>
         </a>
         <div className="top-actions">
-          <div className="top-progress" aria-label={`${progress.percent}% concluído`}>
-            <div className="top-progress-label"><span>Progresso</span><span>{progress.percent}%</span></div>
-            <div className="progress-track"><div className="progress-fill" style={{ width: `${progress.percent}%` }} /></div>
+          <div className="top-progress-group">
+            <div className="top-progress" aria-label={`Back: ${backProgress.percent}% concluído`}>
+              <div className="top-progress-label"><span>Back</span><span>{backProgress.percent}%</span></div>
+              <div className="progress-track"><div className="progress-fill progress-fill--back" style={{ width: `${backProgress.percent}%` }} /></div>
+            </div>
+            <div className="top-progress" aria-label={`Full: ${fullProgress.percent}% concluído`}>
+              <div className="top-progress-label"><span>Full</span><span>{fullProgress.percent}%</span></div>
+              <div className="progress-track"><div className="progress-fill progress-fill--full" style={{ width: `${fullProgress.percent}%` }} /></div>
+            </div>
           </div>
-          <button className="reset-button" type="button" onClick={() => setResetOpen(true)} aria-label="Limpar checklist"><RotateCcw size={14} /><span>Limpar</span></button>
+          <button className="reset-button" type="button" onClick={() => setResetOpen(true)} aria-label="Limpar checklists"><RotateCcw size={14} /><span>Limpar</span></button>
           <button className="mobile-menu" type="button" onClick={() => setMobileOpen((open) => !open)} aria-expanded={mobileOpen} aria-controls="doc-sidebar">
             {mobileOpen ? <X size={16} /> : <Menu size={16} />} <span>Sumário</span>
           </button>
@@ -197,13 +317,45 @@ function App() {
             </div>
           </section>
           <section className="summary-card" aria-label="Resumo do checklist">
-            <div className="summary-ring" style={{ '--percent': progress.percent } as CSSProperties}><strong>{progress.percent}%</strong></div>
+            <div className="summary-ring-wrap">
+              <div className="summary-ring summary-ring--back" style={{ '--percent': backProgress.percent } as CSSProperties}><strong>{backProgress.percent}%</strong></div>
+              <span className="summary-ring-label summary-ring-label--back">Back completo. Front faltando.</span>
+            </div>
+            <div className="summary-ring-wrap">
+              <div className="summary-ring summary-ring--full" style={{ '--percent': fullProgress.percent } as CSSProperties}><strong>{fullProgress.percent}%</strong></div>
+              <span className="summary-ring-label summary-ring-label--full">Back e Front Completo.</span>
+            </div>
             <div className="summary-copy"><h2>O mapa está em movimento.</h2><p>Marque cada requisito individualmente. Seu progresso fica salvo neste dispositivo.</p></div>
-            <div className="summary-stat"><strong>{progress.completed} / {progress.total}</strong><span>itens concluídos</span></div>
+            <div className="summary-stat">
+              <div className="summary-stat-row">
+                <span className="summary-stat-dot summary-stat-dot--back" />
+                <strong>{backProgress.completed} / {backProgress.total}</strong>
+              </div>
+              <span>back concluídos</span>
+              <div className="summary-stat-row" style={{ marginTop: '6px' }}>
+                <span className="summary-stat-dot summary-stat-dot--full" />
+                <strong>{fullProgress.completed} / {fullProgress.total}</strong>
+              </div>
+              <span>full concluídos</span>
+            </div>
           </section>
+
+          {/* Legend strip — checkbox examples */}
+          <h3 className="legend-title">Legenda</h3>
+          <div className="legend-strip">
+            <div className="legend-item">
+              <span className="legend-checkbox legend-checkbox--back" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
+              Back completo. Front faltando.
+            </div>
+            <div className="legend-item">
+              <span className="legend-checkbox legend-checkbox--full" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
+              Back e Front Completo.
+            </div>
+          </div>
+
           <div className="section-heading">
             <h2>Escopo do produto</h2>
-            <p>{query || mode !== 'all' ? `${resultCount} áreas visíveis` : `${progress.total} itens no mapa`}</p>
+            <p>{query || mode !== 'all' ? `${resultCount} áreas visíveis` : `${backProgress.total} itens no mapa`}</p>
           </div>
           <div className="filter-bar" role="toolbar" aria-label="Filtros de requisitos">
             {(['all', 'open', 'done'] as FilterMode[]).map((filter) => (
@@ -216,11 +368,37 @@ function App() {
             <>
               <section aria-labelledby="functional-heading">
                 <div className="section-heading"><h2 id="functional-heading">Requisitos funcionais</h2><p>RF 01 — RF 19</p></div>
-                <div className="req-list">{visibleFunctional.map((node) => <RequirementCard key={node.id} node={node} state={state} onToggle={toggle} />)}</div>
+                <div className="req-list">
+                  {visibleFunctional.map((node) => (
+                    <RequirementCard
+                      key={node.id}
+                      node={node}
+                      backState={backState}
+                      fullState={fullState}
+                      backLockedIds={backLockedIds}
+                      fullLockedIds={fullLockedIds}
+                      onToggleBack={toggleBack}
+                      onToggleFull={toggleFull}
+                    />
+                  ))}
+                </div>
               </section>
               <section aria-labelledby="non-functional-heading">
                 <div className="section-heading"><h2 id="non-functional-heading">Requisitos não funcionais</h2><p>NF 01 — NF 06</p></div>
-                <div className="req-list">{visibleNonFunctional.map((node) => <RequirementCard key={node.id} node={node} state={state} onToggle={toggle} />)}</div>
+                <div className="req-list">
+                  {visibleNonFunctional.map((node) => (
+                    <RequirementCard
+                      key={node.id}
+                      node={node}
+                      backState={backState}
+                      fullState={fullState}
+                      backLockedIds={backLockedIds}
+                      fullLockedIds={fullLockedIds}
+                      onToggleBack={toggleBack}
+                      onToggleFull={toggleFull}
+                    />
+                  ))}
+                </div>
               </section>
             </>
           )}

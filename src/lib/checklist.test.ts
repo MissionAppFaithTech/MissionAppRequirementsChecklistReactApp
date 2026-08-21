@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { RequirementNode } from '@/data/requirements';
 import {
+  CHECKLIST_BACK_KEY,
+  CHECKLIST_FULL_KEY,
   CHECKLIST_STORAGE_KEY,
+  countDualProgress,
   countProgress,
   flattenRequirements,
+  getLockedIds,
   loadChecklist,
   saveChecklist,
   toggleChecklist,
@@ -137,6 +141,91 @@ describe('checklist state', () => {
     saveChecklist({ 'rf-2': true, unknown: true });
     expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toContain('"rf-2":true');
 
-    expect(loadChecklist(requirements)).toEqual({ 'rf-2': true });
+    expect(loadChecklist(CHECKLIST_STORAGE_KEY, requirements)).toEqual({ 'rf-2': true });
+  });
+});
+
+describe('getLockedIds', () => {
+  it('returns empty set when no items are checked', () => {
+    const locked = getLockedIds({}, requirements);
+    expect(locked.size).toBe(0);
+  });
+
+  it('locks a single checked leaf node', () => {
+    const locked = getLockedIds({ 'rf-2': true }, requirements);
+    expect(locked.has('rf-2')).toBe(true);
+    expect(locked.has('rf-1')).toBe(false);
+  });
+
+  it('locks a parent and all its descendants when parent is checked', () => {
+    const locked = getLockedIds({ 'rf-1': true }, requirements);
+    expect(locked.has('rf-1')).toBe(true);
+    expect(locked.has('rf-1-1')).toBe(true);
+    expect(locked.has('rf-1-2')).toBe(true);
+    expect(locked.has('rf-2')).toBe(false);
+  });
+
+  it('cascades through deeply nested hierarchies', () => {
+    const locked = getLockedIds({ 'rf-3': true }, requirements);
+    expect(locked.has('rf-3')).toBe(true);
+    expect(locked.has('rf-3-1')).toBe(true);
+    expect(locked.has('rf-3-1-1')).toBe(true);
+  });
+
+  it('locks children even when only a mid-level node is checked', () => {
+    const locked = getLockedIds({ 'rf-3-1': true }, requirements);
+    expect(locked.has('rf-3')).toBe(false);
+    expect(locked.has('rf-3-1')).toBe(true);
+    expect(locked.has('rf-3-1-1')).toBe(true);
+  });
+});
+
+describe('countDualProgress', () => {
+  it('returns independent progress for back and full checklists', () => {
+    const backState = { 'rf-1': true, 'rf-1-1': true, 'rf-1-2': true };
+    const fullState = { 'rf-2': true };
+
+    const progress = countDualProgress(requirements, backState, fullState);
+
+    expect(progress.back.completed).toBe(3);
+    expect(progress.back.total).toBe(7);
+    expect(progress.full.completed).toBe(1);
+    expect(progress.full.total).toBe(7);
+  });
+
+  it('returns zero progress for empty states', () => {
+    const progress = countDualProgress(requirements, {}, {});
+    expect(progress.back.completed).toBe(0);
+    expect(progress.full.completed).toBe(0);
+    expect(progress.back.percent).toBe(0);
+    expect(progress.full.percent).toBe(0);
+  });
+});
+
+describe('dual checklist storage', () => {
+  beforeEach(() => {
+    const storage = new Map<string, string>();
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        localStorage: {
+          getItem: (key: string) => storage.get(key) ?? null,
+          setItem: (key: string, value: string) => storage.set(key, value),
+        },
+      },
+    });
+  });
+
+  it('persists and loads back checklist independently', () => {
+    saveChecklist({ 'rf-1': true, 'rf-1-1': true, 'rf-1-2': true }, CHECKLIST_BACK_KEY);
+    saveChecklist({ 'rf-2': true }, CHECKLIST_FULL_KEY);
+
+    const backLoaded = loadChecklist(CHECKLIST_BACK_KEY, requirements);
+    const fullLoaded = loadChecklist(CHECKLIST_FULL_KEY, requirements);
+
+    expect(backLoaded['rf-1']).toBe(true);
+    expect(backLoaded['rf-2']).toBeUndefined();
+    expect(fullLoaded['rf-2']).toBe(true);
+    expect(fullLoaded['rf-1']).toBeUndefined();
   });
 });
