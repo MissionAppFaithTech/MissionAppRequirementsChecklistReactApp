@@ -5,11 +5,18 @@ import {
   CHECKLIST_BACK_KEY,
   CHECKLIST_FULL_KEY,
   countProgress,
+  fetchCloudState,
   getLockedIds,
-  loadChecklist,
-  saveChecklist,
-  toggleChecklist,
+  loadTimestampedChecklist,
+  mergeTimestampedStates,
+  resetCloudState,
+  saveTimestampedChecklist,
+  syncCloudItems,
+  syncParentStates,
+  toggleTimestampedChecklist,
+  toPlainState,
   type ChecklistState,
+  type TimestampedChecklistState,
 } from '@/lib/checklist';
 
 type FilterMode = 'all' | 'open' | 'done';
@@ -213,7 +220,7 @@ function ConfirmReset({ onCancel, onConfirm }: { onCancel: () => void; onConfirm
     <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}>
       <section className="modal" role="dialog" aria-modal="true" aria-labelledby="reset-title">
         <h2 id="reset-title">Começar de novo?</h2>
-        <p>Todos os itens marcados (back e full) serão desmarcados neste navegador. Esta ação não pode ser desfeita.</p>
+        <p>Todos os itens marcados (back e full) serão desmarcados neste navegador e na nuvem. Esta ação não pode ser desfeita.</p>
         <div className="modal-actions">
           <button className="modal-cancel" type="button" onClick={onCancel}>Cancelar</button>
           <button className="modal-danger" type="button" onClick={onConfirm}>Limpar checklists</button>
@@ -224,14 +231,18 @@ function ConfirmReset({ onCancel, onConfirm }: { onCancel: () => void; onConfirm
 }
 
 function App() {
-  const [backState, setBackState] = useState<ChecklistState>(() => loadChecklist(CHECKLIST_BACK_KEY));
-  const [fullState, setFullState] = useState<ChecklistState>(() => loadChecklist(CHECKLIST_FULL_KEY));
+  const [backTsState, setBackTsState] = useState<TimestampedChecklistState>(() => loadTimestampedChecklist(CHECKLIST_BACK_KEY));
+  const [fullTsState, setFullTsState] = useState<TimestampedChecklistState>(() => loadTimestampedChecklist(CHECKLIST_FULL_KEY));
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<FilterMode>('all');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [activeId, setActiveId] = useState('rf-1');
   const [showTop, setShowTop] = useState(false);
+
+  // Derive plain boolean states for UI calculation & cascading parents
+  const backState = useMemo(() => syncParentStates(allRequirements, toPlainState(backTsState)), [backTsState]);
+  const fullState = useMemo(() => syncParentStates(allRequirements, toPlainState(fullTsState)), [fullTsState]);
 
   const backProgress = useMemo(() => countProgress(allRequirements, backState), [backState]);
   const fullProgress = useMemo(() => countProgress(allRequirements, fullState), [fullState]);
@@ -240,14 +251,38 @@ function App() {
   const backLockedIds = useMemo(() => getLockedIds(fullState, allRequirements), [fullState]);
   const fullLockedIds = useMemo(() => getLockedIds(backState, allRequirements), [backState]);
 
-  useEffect(() => { saveChecklist(backState, CHECKLIST_BACK_KEY); }, [backState]);
-  useEffect(() => { saveChecklist(fullState, CHECKLIST_FULL_KEY); }, [fullState]);
+  // Save to localStorage on change
+  useEffect(() => { saveTimestampedChecklist(backTsState, CHECKLIST_BACK_KEY); }, [backTsState]);
+  useEffect(() => { saveTimestampedChecklist(fullTsState, CHECKLIST_FULL_KEY); }, [fullTsState]);
+
+  // Initial cloud state sync on mount (Vercel KV fetch)
+  useEffect(() => {
+    let mounted = true;
+    fetchCloudState().then((cloudState) => {
+      if (!mounted || !cloudState) return;
+
+      setBackTsState((currentLocal) => {
+        const merged = mergeTimestampedStates(currentLocal, cloudState.back);
+        saveTimestampedChecklist(merged, CHECKLIST_BACK_KEY);
+        return merged;
+      });
+
+      setFullTsState((currentLocal) => {
+        const merged = mergeTimestampedStates(currentLocal, cloudState.full);
+        saveTimestampedChecklist(merged, CHECKLIST_FULL_KEY);
+        return merged;
+      });
+    });
+
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 420);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
   useEffect(() => {
     const sections = allRequirements.map((node) => document.getElementById(node.id)).filter(Boolean) as HTMLElement[];
     if (!sections.length) return;
@@ -259,9 +294,30 @@ function App() {
     return () => observer.disconnect();
   }, [query, mode]);
 
-  const toggleBack = (id: string) => setBackState((current) => toggleChecklist(current, id));
-  const toggleFull = (id: string) => setFullState((current) => toggleChecklist(current, id));
-  const reset = () => { setBackState({}); setFullState({}); setResetOpen(false); };
+  const toggleBack = (id: string) => {
+    const timestamp = Date.now();
+    const { nextTsState, updates } = toggleTimestampedChecklist(backTsState, id, 'back', timestamp);
+    setBackTsState(nextTsState);
+    saveTimestampedChecklist(nextTsState, CHECKLIST_BACK_KEY);
+    syncCloudItems(updates);
+  };
+
+  const toggleFull = (id: string) => {
+    const timestamp = Date.now();
+    const { nextTsState, updates } = toggleTimestampedChecklist(fullTsState, id, 'full', timestamp);
+    setFullTsState(nextTsState);
+    saveTimestampedChecklist(nextTsState, CHECKLIST_FULL_KEY);
+    syncCloudItems(updates);
+  };
+
+  const reset = () => {
+    setBackTsState({});
+    setFullTsState({});
+    saveTimestampedChecklist({}, CHECKLIST_BACK_KEY);
+    saveTimestampedChecklist({}, CHECKLIST_FULL_KEY);
+    setResetOpen(false);
+    resetCloudState();
+  };
 
   const visibleFunctional = useMemo(() => functionalRequirements.map((node) => filterNode(node, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[], [query, mode, backState, fullState]);
   const visibleNonFunctional = useMemo(() => nonFunctionalRequirements.map((node) => filterNode(node, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[], [query, mode, backState, fullState]);
@@ -325,7 +381,7 @@ function App() {
               <div className="summary-ring summary-ring--full" style={{ '--percent': fullProgress.percent } as CSSProperties}><strong>{fullProgress.percent}%</strong></div>
               <span className="summary-ring-label summary-ring-label--full">Back e Front Completo.</span>
             </div>
-            <div className="summary-copy"><h2>O mapa está em movimento.</h2><p>Marque cada requisito individualmente. Seu progresso fica salvo neste dispositivo.</p></div>
+            <div className="summary-copy"><h2>O mapa está em movimento.</h2><p>Marque cada requisito individualmente. Seu progresso é sincronizado na nuvem e salvo neste dispositivo.</p></div>
             <div className="summary-stat">
               <div className="summary-stat-row">
                 <span className="summary-stat-dot summary-stat-dot--back" />

@@ -9,8 +9,13 @@ import {
   flattenRequirements,
   getLockedIds,
   loadChecklist,
+  loadTimestampedChecklist,
+  mergeTimestampedStates,
   saveChecklist,
+  saveTimestampedChecklist,
   toggleChecklist,
+  toggleTimestampedChecklist,
+  toPlainState,
 } from './checklist';
 
 const requirements: RequirementNode[] = [
@@ -145,6 +150,69 @@ describe('checklist state', () => {
   });
 });
 
+describe('timestamped checklist state and conflict resolution', () => {
+  it('converts timestamped state to plain boolean state', () => {
+    const tsState = {
+      'rf-1': { value: true, timestamp: 100 },
+      'rf-2': { value: false, timestamp: 200 },
+    };
+    expect(toPlainState(tsState)).toEqual({
+      'rf-1': true,
+      'rf-2': false,
+    });
+  });
+
+  it('merges local and remote states based on "latest update wins" per item', () => {
+    const localState = {
+      'rf-1': { value: true, timestamp: 100 }, // older than remote
+      'rf-2': { value: true, timestamp: 300 }, // newer than remote
+      'rf-3': { value: false, timestamp: 200 }, // local only
+    };
+
+    const remoteState = {
+      'rf-1': { value: false, timestamp: 200 }, // remote wins (200 > 100)
+      'rf-2': { value: false, timestamp: 150 }, // local wins (300 > 150)
+      'rf-4': { value: true, timestamp: 250 },  // remote only
+    };
+
+    const merged = mergeTimestampedStates(localState, remoteState);
+
+    expect(merged['rf-1']).toEqual({ value: false, timestamp: 200 });
+    expect(merged['rf-2']).toEqual({ value: true, timestamp: 300 });
+    expect(merged['rf-3']).toEqual({ value: false, timestamp: 200 });
+    expect(merged['rf-4']).toEqual({ value: true, timestamp: 250 });
+  });
+
+  it('toggles timestamped state and generates update payloads', () => {
+    const initialTs = {
+      'rf-2': { value: false, timestamp: 100 },
+    };
+
+    const { nextTsState, updates } = toggleTimestampedChecklist(initialTs, 'rf-2', 'back', 500, requirements);
+
+    expect(nextTsState['rf-2']).toEqual({ value: true, timestamp: 500 });
+    expect(updates).toContainEqual({ id: 'rf-2', type: 'back', value: true, timestamp: 500 });
+  });
+
+  it('loads timestamped checklist with migration from legacy boolean storage', () => {
+    const storage = new Map<string, string>();
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        localStorage: {
+          getItem: (key: string) => storage.get(key) ?? null,
+          setItem: (key: string, value: string) => storage.set(key, value),
+        },
+      },
+    });
+
+    saveChecklist({ 'rf-2': true }, 'legacy-key');
+    const loaded = loadTimestampedChecklist('legacy-key', requirements);
+
+    expect(loaded['rf-2']).toEqual({ value: true, timestamp: 0 });
+  });
+});
+
 describe('getLockedIds', () => {
   it('returns empty set when no items are checked', () => {
     const locked = getLockedIds({}, requirements);
@@ -217,15 +285,15 @@ describe('dual checklist storage', () => {
   });
 
   it('persists and loads back checklist independently', () => {
-    saveChecklist({ 'rf-1': true, 'rf-1-1': true, 'rf-1-2': true }, CHECKLIST_BACK_KEY);
-    saveChecklist({ 'rf-2': true }, CHECKLIST_FULL_KEY);
+    saveTimestampedChecklist({ 'rf-1': { value: true, timestamp: 100 } }, CHECKLIST_BACK_KEY);
+    saveTimestampedChecklist({ 'rf-2': { value: true, timestamp: 100 } }, CHECKLIST_FULL_KEY);
 
-    const backLoaded = loadChecklist(CHECKLIST_BACK_KEY, requirements);
-    const fullLoaded = loadChecklist(CHECKLIST_FULL_KEY, requirements);
+    const backLoaded = loadTimestampedChecklist(CHECKLIST_BACK_KEY, requirements);
+    const fullLoaded = loadTimestampedChecklist(CHECKLIST_FULL_KEY, requirements);
 
-    expect(backLoaded['rf-1']).toBe(true);
+    expect(backLoaded['rf-1']).toEqual({ value: true, timestamp: 100 });
     expect(backLoaded['rf-2']).toBeUndefined();
-    expect(fullLoaded['rf-2']).toBe(true);
+    expect(fullLoaded['rf-2']).toEqual({ value: true, timestamp: 100 });
     expect(fullLoaded['rf-1']).toBeUndefined();
   });
 });
