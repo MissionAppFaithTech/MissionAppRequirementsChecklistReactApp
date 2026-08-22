@@ -352,16 +352,20 @@ function App() {
             </div>
             <div className="summary-copy"><h2>O desenvolvimento está avançando.</h2><p>Marque cada requisito individualmente. Seu progresso é sincronizado na nuvem e salvo neste dispositivo.</p></div>
             <div className="summary-stat">
-              <div className="summary-stat-row">
-                <span className="summary-stat-dot summary-stat-dot--back" />
-                <strong>{backProgress.completed} / {backProgress.total}</strong>
+              <div className="summary-stat-block">
+                <div className="summary-stat-row">
+                  <span className="summary-stat-dot summary-stat-dot--back" />
+                  <strong>{backProgress.completed} / {backProgress.total}</strong>
+                </div>
+                <span>back concluídos</span>
               </div>
-              <span>back concluídos</span>
-              <div className="summary-stat-row" style={{ marginTop: '6px' }}>
-                <span className="summary-stat-dot summary-stat-dot--full" />
-                <strong>{fullProgress.completed} / {fullProgress.total}</strong>
+              <div className="summary-stat-block">
+                <div className="summary-stat-row">
+                  <span className="summary-stat-dot summary-stat-dot--full" />
+                  <strong>{fullProgress.completed} / {fullProgress.total}</strong>
+                </div>
+                <span>back e front integrados</span>
               </div>
-              <span>back e front integrados</span>
             </div>
           </section>
 
