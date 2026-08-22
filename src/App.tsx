@@ -306,8 +306,8 @@ function App() {
               <div className="top-progress-label"><span>Back</span><span>{backProgress.percent}%</span></div>
               <div className="progress-track"><div className="progress-fill progress-fill--back" style={{ width: `${backProgress.percent}%` }} /></div>
             </div>
-            <div className="top-progress" aria-label={`Full: ${fullProgress.percent}% concluído`}>
-              <div className="top-progress-label"><span>Full</span><span>{fullProgress.percent}%</span></div>
+            <div className="top-progress" aria-label={`Finalizado: ${fullProgress.percent}% concluído`}>
+              <div className="top-progress-label"><span>Finalizado</span><span>{fullProgress.percent}%</span></div>
               <div className="progress-track"><div className="progress-fill progress-fill--full" style={{ width: `${fullProgress.percent}%` }} /></div>
             </div>
           </div>
