@@ -319,7 +319,7 @@ function App() {
       <div className="layout">
         <aside id="doc-sidebar" className={`sidebar${mobileOpen ? ' open' : ''}`} aria-label="Sumário dos requisitos">
           <h2 className="sidebar-heading">Sumário</h2>
-          <p className="sidebar-note">Navegue pelo escopo e acompanhe o que já foi cuidado.</p>
+          <p className="sidebar-note">Navegue pelo escopo e acompanhe o que já foi implementado.</p>
           <label className="search-wrap">
             <span className="sr-only">Buscar requisito</span>
             <Search size={16} />
@@ -331,10 +331,10 @@ function App() {
         {mobileOpen && <div className="sidebar-scrim" onClick={() => setMobileOpen(false)} aria-hidden="true" />}
         <main className="main" id="conteudo">
           <section className="hero">
-            <span className="eyebrow">Documento vivo · v1.0</span>
+            <span className="eyebrow">Documentação do Progresso</span>
             <h1>Especificação de requisitos do <em>Mission App</em></h1>
             <p className="hero-lede">Uma plataforma para conscientizar igrejas sobre o trabalho missionário realizado ao redor do mundo através de campanhas recorrentes, conexões e projetos de impacto.</p>
-            <div className="hero-meta"><span>Última revisão: 06 mar 2025</span><a href="https://github.com/MissionAppFaithTech" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://www.figma.com/design/uMAwJPYKaEoN7ScjAmgZ6O/Mission-app" target="_blank" rel="noreferrer">Design no Figma ↗</a></div>
+            <div className="hero-meta"><span>Última revisão: 21 ago 2025</span><a href="https://github.com/MissionAppFaithTech" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://www.figma.com/design/uMAwJPYKaEoN7ScjAmgZ6O/Mission-app" target="_blank" rel="noreferrer">Design no Figma ↗</a></div>
             <div className="hero-site-link">
               <span>Site com todos os requisitos especificados e detalhados:</span>
               <br />
@@ -348,9 +348,9 @@ function App() {
             </div>
             <div className="summary-ring-wrap">
               <div className="summary-ring summary-ring--full" style={{ '--percent': fullProgress.percent } as CSSProperties}><strong>{fullProgress.percent}%</strong></div>
-              <span className="summary-ring-label summary-ring-label--full">Back e Front Completo.</span>
+              <span className="summary-ring-label summary-ring-label--full">Back e Front integrados e completos.</span>
             </div>
-            <div className="summary-copy"><h2>O mapa está em movimento.</h2><p>Marque cada requisito individualmente. Seu progresso é sincronizado na nuvem e salvo neste dispositivo.</p></div>
+            <div className="summary-copy"><h2>O desenvolvimento está avançando.</h2><p>Marque cada requisito individualmente. Seu progresso é sincronizado na nuvem e salvo neste dispositivo.</p></div>
             <div className="summary-stat">
               <div className="summary-stat-row">
                 <span className="summary-stat-dot summary-stat-dot--back" />
@@ -361,7 +361,7 @@ function App() {
                 <span className="summary-stat-dot summary-stat-dot--full" />
                 <strong>{fullProgress.completed} / {fullProgress.total}</strong>
               </div>
-              <span>full concluídos</span>
+              <span>back e front integrados</span>
             </div>
           </section>
 
@@ -374,7 +374,7 @@ function App() {
             </div>
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--full" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
-              Back e Front Completo.
+              Back e Front integrados e completos.
             </div>
           </div>
 
