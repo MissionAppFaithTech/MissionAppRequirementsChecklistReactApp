@@ -14,9 +14,9 @@ const item = (id: string, code: string, title: string, description?: string, chi
 
 export const functionalRequirements: RequirementNode[] = [
   item('rf-1', 'RF 1', 'Autenticação e Acesso', 'Entrada segura para apoiadores, missionários e administradores.', [
-    item('rf-1-1', 'RF 1.1', 'Login', 'Acesso por e-mail e senha previamente cadastrados.'),
+    item('rf-1-1', 'RF 1.1', 'Login', 'Fluxo padrão de e-mail e senha para apoiadores e missionários (inclusive com cargo de avaliador) e administradores.'),
     item('rf-1-2', 'RF 1.2', 'Redefinição de senha', 'Fluxo seguro de recuperação por e-mail.'),
-    item('rf-1-3', 'RF 1.3', 'Aprovação de cadastro', 'Administrador aprova manualmente solicitações de missionários.'),
+    item('rf-1-3', 'RF 1.3', 'Aprovação de cadastro', 'Administrador ou usuário com cargo de avaliador aprova manualmente as solicitações em área exclusiva do Painel Administrativo.'),
     item('rf-1-4', 'RF 1.4', 'Acesso sem autenticação em rotas públicas', 'Visitantes acessam perfis, doações, projetos e pesquisas apenas em modo de leitura.', [
       item('rf-1-4-1', 'RF 1.4.1', 'Fluxo de visitantes e alertas', 'Exibe convite para cadastro e alerta ao tentar uma ação protegida.'),
     ]),
@@ -179,7 +179,7 @@ export const functionalRequirements: RequirementNode[] = [
   item('rf-15', 'RF 15', 'Configurações de Conta', 'Área privada para credenciais e dados eclesiásticos.', [
     item('rf-15-1', 'RF 15.1', 'Acesso às configurações', 'Restrito ao próprio usuário autenticado.'),
     item('rf-15-2', 'RF 15.2', 'Credenciais de acesso', 'Altera e-mail com senha atual e redefine senha com confirmação.'),
-    item('rf-15-3', 'RF 15.3', 'Dados eclesiásticos', 'Atualiza comunidade, endereço, site, telefones e pastor; após um mês pode exigir solicitação.'),
+    item('rf-15-3', 'RF 15.3', 'Dados eclesiásticos', 'Atualiza comunidade, endereço, site, telefones e pastor livremente, a qualquer momento, sem prazo limite nem pedido formal à administração.'),
     item('rf-15-4', 'RF 15.4', 'Validações e segurança', 'Confere e-mail em uso e notifica alterações sensíveis.'),
     item('rf-15-5', 'RF 15.5', 'Exclusão e soft delete', 'Apoiadores podem ter hard delete; missionários e denúncias usam exclusão lógica.'),
   ]),
@@ -191,13 +191,13 @@ export const functionalRequirements: RequirementNode[] = [
     item('rf-16-5', 'RF 16.5', 'Suspensão por acúmulo', 'Dez denúncias de usuários diferentes aplicam soft delete e role suspensa.'),
     item('rf-16-6', 'RF 16.6', 'Alertas de suspensão', 'E-mail para administração e usuário; painel é atualizado.'),
   ]),
-  item('rf-17', 'RF 17', 'Administração do Sistema', 'Provisionamento e autenticação administrativa controlados.', [
-    item('rf-17-1', 'RF 17.1', 'Cadastro de administrador', 'Não permite auto-cadastro público.'),
-    item('rf-17-2', 'RF 17.2', 'Autenticação administrativa', 'Verifica explicitamente a role de Administrador.'),
-    item('rf-17-3', 'RF 17.3', 'Privilégios', 'Somente administradores aprovam missionários e gerenciam usuários.'),
+  item('rf-17', 'RF 17', 'Administração do Sistema', 'Provisionamento de administradores e acesso controlado ao painel de gestão.', [
+    item('rf-17-1', 'RF 17.1', 'Cadastro de administrador', 'Sem auto-cadastro público: contas com role "Administrador" vêm de provisionamento interno. Avaliador não é conta nova, e sim cargo atribuído a usuário existente (RF 18.6 e RF 20).'),
+    item('rf-17-2', 'RF 17.2', 'Autenticação administrativa e acesso ao painel', 'Administrador entra por credenciais administrativas; avaliador entra pelo login padrão (RF 1.1) e acessa o painel por atalho na interface.'),
+    item('rf-17-3', 'RF 17.3', 'Privilégios', 'Avaliador exerce funções de administrador nas abas operacionais; atribuir/revogar o cargo e gerir contas de Administrador são prerrogativas exclusivas do Administrador (RF 18.6 e RF 20.6).'),
   ]),
-  item('rf-18', 'RF 18', 'Painel Administrativo', 'Aprovação, campanhas e moderação em uma área dedicada.', [
-    item('rf-18-1', 'RF 18.1', 'Solicitações pendentes', 'Lista paginada de missionários pendentes.'),
+  item('rf-18', 'RF 18', 'Painel Administrativo', 'Aprovação, campanhas, denúncias e gestão de avaliadores em uma área dedicada.', [
+    item('rf-18-1', 'RF 18.1', 'Solicitações pendentes', 'Painel de Aprovação é a aba padrão ao entrar, com lista paginada de missionários pendentes.'),
     item('rf-18-2', 'RF 18.2', 'Interface de aprovação', 'Exibe dados básicos e ação Aprovar.'),
     item('rf-18-3', 'RF 18.3', 'Processamento da aprovação', 'Atualiza status e envia boas-vindas.', [
       item('rf-18-3-1', 'RF 18.3.1', 'Atualização de status', 'Torna o missionário ativo e apto a entrar.'),
@@ -214,9 +214,9 @@ export const functionalRequirements: RequirementNode[] = [
       item('rf-18-5-1', 'RF 18.5.1', 'Aba de denunciados', 'Exibe identidade, contato e motivos das denúncias.'),
       item('rf-18-5-2', 'RF 18.5.2', 'Mecanismos de reativação', 'Restaura visibilidade e remove restrições.'),
     ]),
-    item('rf-18-6', 'RF 18.6', 'Gerenciamento de Avaliadores', 'Aba dedicada à gestão de avaliadores, acessível somente por Administradores.', [
-      item('rf-18-6-1', 'RF 18.6.1', 'Aba de avaliadores', 'Listagem paginada com nome, e-mail, telefone, data de criação e status.'),
-      item('rf-18-6-2', 'RF 18.6.2', 'Operações administrativas', 'Criar, editar e revogar acesso de avaliadores, preservando histórico de ações.'),
+    item('rf-18-6', 'RF 18.6', 'Gerenciamento de Avaliadores', 'Aba dedicada à atribuição e gestão do cargo de avaliador para apoiadores e missionários já cadastrados, acessível somente por Administradores.', [
+      item('rf-18-6-1', 'RF 18.6.1', 'Aba de avaliadores', 'Listagem paginada com nome, nome de usuário, e-mail, tipo de conta base, data de atribuição e status do cargo.'),
+      item('rf-18-6-2', 'RF 18.6.2', 'Atribuição e revogação do cargo', 'Pesquisa usuário por e-mail, nome ou nome de usuário e concede ou revoga a role; a revogação devolve a conta ao perfil original e preserva o histórico de ações.'),
     ]),
   ]),
   item('rf-19', 'RF 19', 'Histórico de Campanhas', 'Registro leve, auditável e consultável do ciclo das campanhas.', [
@@ -224,18 +224,18 @@ export const functionalRequirements: RequirementNode[] = [
     item('rf-19-2', 'RF 19.2', 'Restrição de armazenamento', 'Histórico guarda apenas textos e datas, nunca arquivos binários.'),
     item('rf-19-3', 'RF 19.3', 'Consulta do histórico', 'Consulta por campanha respeitando o período informado.'),
   ]),
-  item('rf-20', 'RF 20', 'Papéis e Privilégios do Avaliador', 'Função dedicada a aprovar missionários e gerenciar campanhas e denúncias, sem privilégios de administrador.', [
-    item('rf-20-1', 'RF 20.1', 'Definição da role', 'Função distinta de Administrador para aprovação de missionários, sem perfil público nem presença na busca.'),
-    item('rf-20-2', 'RF 20.2', 'Dados da conta', 'Mesmos dados de conta administrativa (RF 17.1), diferindo exclusivamente no valor da role.'),
-    item('rf-20-3', 'RF 20.3', 'Criação da conta', 'Sem auto-cadastro público; criada por Administrador na aba de Avaliadores (RF 18.6).'),
-    item('rf-20-4', 'RF 20.4', 'Autenticação e acesso ao painel', 'Autentica-se pela rota do RF 17.2, aceitando Administrador e Avaliador para liberar o painel.'),
-    item('rf-20-5', 'RF 20.5', 'Privilégios no painel administrativo', 'Acessa aprovação de missionários, gerenciamento de campanhas e denúncias/reativação.', [
+  item('rf-20', 'RF 20', 'Papéis e Privilégios do Avaliador', 'Cargo atribuído a apoiadores ou missionários para exercer funções de administrador nas abas operacionais do painel.', [
+    item('rf-20-1', 'RF 20.1', 'Definição da role', 'Cargo concedido a apoiador ou missionário; o usuário mantém perfil público e presença na busca, e o cargo não é exibido como rótulo público.'),
+    item('rf-20-2', 'RF 20.2', 'Vinculação à conta de usuário', 'Não é conta separada: usa a própria conta existente com seus dados (RF 2 ou RF 3) e credenciais habituais.'),
+    item('rf-20-3', 'RF 20.3', 'Atribuição e revogação do cargo', 'Sem auto-cadastro público; conceder e revogar são exclusivos do Administrador na aba de Avaliadores (RF 18.6).'),
+    item('rf-20-4', 'RF 20.4', 'Autenticação e acesso ao painel', 'Login pelo fluxo padrão da plataforma (RF 1.1); com a role ativa, o sistema exibe atalho direto para o Painel Administrativo.'),
+    item('rf-20-5', 'RF 20.5', 'Funções administrativas no painel', 'Exerce funções de administrador na aprovação de missionários, no gerenciamento de campanhas e em denúncias/reativação.', [
       item('rf-20-5-1', 'RF 20.5.1', 'Aprovação de missionários', 'Visualiza solicitações pendentes e aprova cadastros (RF 18.1, 18.2 e 18.3).'),
       item('rf-20-5-2', 'RF 20.5.2', 'Gerenciamento de campanhas', 'Cria, edita, publica, arquiva, exclui e duplica campanhas, associa projetos e ordena destaques (RF 18.4).'),
       item('rf-20-5-3', 'RF 20.5.3', 'Gerenciamento de denúncias e reativação', 'Consulta a aba de denunciados, avalia casos e reativa contas suspensas por acúmulo de denúncias (RF 18.5).'),
     ]),
-    item('rf-20-6', 'RF 20.6', 'Restrições do avaliador', 'Sem permissão para criar/editar contas administrativas, acessar a aba de Avaliadores (RF 18.6) nem gerenciar alteração de nome de usuário (RF 15.3).'),
-    item('rf-20-7', 'RF 20.7', 'Registro de autoria das ações', 'Armazena conta responsável, data e hora de cada aprovação, reativação e operação de campanha (NF 4.5).'),
+    item('rf-20-6', 'RF 20.6', 'Restrições do avaliador', 'Sem permissão para acessar a aba de Avaliadores (RF 18.6), atribuir ou revogar o cargo de outros usuários, nem criar/alterar contas de Administrador.'),
+    item('rf-20-7', 'RF 20.7', 'Registro de autoria das ações', 'Armazena usuário responsável, data e hora de cada aprovação, reativação e operação de campanha; permanece inalterado e auditável mesmo após revogação do cargo (NF 4.5).'),
   ]),
 ];
 
