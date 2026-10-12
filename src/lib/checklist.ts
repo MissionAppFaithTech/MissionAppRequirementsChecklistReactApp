@@ -45,30 +45,6 @@ export const countDualProgress = (
   full: countProgress(nodes, fullState),
 });
 
-/**
- * Returns a Set of node IDs that should be LOCKED (disabled) in the opposite checklist.
- * A node is locked if it, or any ancestor, is checked in the given state.
- */
-export const getLockedIds = (state: ChecklistState, nodes: RequirementNode[]): Set<string> => {
-  const locked = new Set<string>();
-
-  const walk = (node: RequirementNode, ancestorLocked: boolean) => {
-    const selfLocked = ancestorLocked || Boolean(state[node.id]);
-    if (selfLocked) locked.add(node.id);
-    if (node.children) {
-      for (const child of node.children) {
-        walk(child, selfLocked);
-      }
-    }
-  };
-
-  for (const node of nodes) {
-    walk(node, false);
-  }
-
-  return locked;
-};
-
 export const findRequirementNode = (nodes: RequirementNode[], id: string): RequirementNode | null => {
   for (const node of nodes) {
     if (node.id === id) return node;
@@ -261,6 +237,42 @@ export const toggleTimestampedChecklist = (
       nextTsState[nodeId] = item;
       updates.push({ id: nodeId, type, value: newVal, timestamp });
     }
+  }
+
+  return { nextTsState, updates };
+};
+
+/**
+ * Clears a node and its whole branch in the OPPOSITE checklist, so an item is never
+ * checked in `back` and `full` at the same time. Parents are re-derived afterwards, so
+ * an ancestor that is no longer fully checked is cleared too.
+ * Only genuinely changed nodes are written and returned as cloud updates.
+ */
+export const clearTimestampedBranch = (
+  tsState: TimestampedChecklistState,
+  id: string,
+  type: 'back' | 'full',
+  timestamp: number = Date.now(),
+  nodes: RequirementNode[] = allRequirements,
+): { nextTsState: TimestampedChecklistState; updates: UpdatePayloadItem[] } => {
+  const currentPlain = syncParentStates(nodes, toPlainState(tsState));
+  const targetNode = findRequirementNode(nodes, id);
+  const branchIds = targetNode ? getDescendantIds(targetNode) : [id];
+
+  const cleared: ChecklistState = { ...currentPlain };
+  for (const branchId of branchIds) {
+    cleared[branchId] = false;
+  }
+  const nextPlain = syncParentStates(nodes, cleared);
+
+  const nextTsState: TimestampedChecklistState = { ...tsState };
+  const updates: UpdatePayloadItem[] = [];
+
+  for (const node of flattenRequirements(nodes)) {
+    const newVal = Boolean(nextPlain[node.id]);
+    if (Boolean(currentPlain[node.id]) === newVal) continue;
+    nextTsState[node.id] = { value: newVal, timestamp };
+    updates.push({ id: node.id, type, value: newVal, timestamp });
   }
 
   return { nextTsState, updates };

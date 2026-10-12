@@ -38,14 +38,14 @@ All state logic is here, pure and tested; `App.tsx` only wires it to React. Key 
 
 - **Two state shapes.** `TimestampedChecklistState` (`{[id]: {value, timestamp}}`) is what's persisted and synced. `ChecklistState` (`{[id]: boolean}`) is derived via `toPlainState` for rendering. Never persist the plain form.
 - **Cascade down, roll up.** `toggleChecklist` writes the new value to the node *and all descendants* (`getDescendantIds`); `syncParentStates` then recomputes every parent as "checked iff all children checked". The plain state rendered by `App` is always passed through `syncParentStates`, so parent booleans are derived, not authoritative.
-- **Mutual exclusion between the two checklists.** `getLockedIds(state, nodes)` returns ids locked in the *opposite* checklist — a node is locked if it or any ancestor is checked in the given state. In `App.tsx` the arguments are crossed: `backLockedIds` comes from `fullState` and vice versa.
+- **Mutual exclusion between the two checklists.** The two boxes are *states*, not cumulative steps: an item is either "back only" or "back+front", never both. Checking a node in one checklist moves it out of the other — `App` calls `clearTimestampedBranch(oppositeTsState, id, oppositeType, timestamp)`, which clears the node and all its descendants there and re-derives the ancestors via `syncParentStates`. It only emits updates for genuinely changed ids. Nothing is disabled in the UI (the old `getLockedIds` lock was removed: it only looked at ancestors, so checking a parent in one list silently left a child checked in both).
 - **Conflict resolution is per-item "latest timestamp wins"**, implemented twice and deliberately mirrored: `mergeTimestampedStates` on the client and the update loop in `api/checklist.ts`. Change one, change the other.
 - **Legacy migration.** A stored bare `boolean` is read as `{value, timestamp: 0}` so any remote value wins over pre-timestamp local data.
 - Three storage keys exist: `CHECKLIST_BACK_KEY`, `CHECKLIST_FULL_KEY`, and the older `CHECKLIST_STORAGE_KEY` (still the default arg of the load/save helpers, only used by tests).
 
 ### Sync flow (`src/App.tsx` ↔ `api/checklist.ts`)
 1. Mount: state initialises from `localStorage`, then `fetchCloudState()` GETs `/api/checklist` and merges remote into local (`mergeTimestampedStates`).
-2. Toggle: `toggleTimestampedChecklist` returns `{nextTsState, updates}`; `App` sets state, writes localStorage, and fires `syncCloudItems(updates)` — a POST of only the changed items, not the whole map.
+2. Toggle: `toggleTimestampedChecklist` returns `{nextTsState, updates}`; `App` sets state, writes localStorage, and fires `syncCloudItems(updates)` — a POST of only the changed items, not the whole map. When the toggle *checks* an item, the updates from `clearTimestampedBranch` on the opposite checklist are appended to the same POST.
 3. There is no polling or realtime channel; a second device only picks up changes on reload.
 4. All cloud helpers swallow errors and return `null`, so the app degrades to localStorage-only. The serverless function does the same: with no KV env vars it returns `{back:{}, full:{}, warning:'Vercel KV not configured'}` with status 200.
 

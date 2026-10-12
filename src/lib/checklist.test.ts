@@ -7,12 +7,13 @@ import {
   countDualProgress,
   countProgress,
   flattenRequirements,
-  getLockedIds,
+  clearTimestampedBranch,
   loadChecklist,
   loadTimestampedChecklist,
   mergeTimestampedStates,
   saveChecklist,
   saveTimestampedChecklist,
+  syncParentStates,
   toggleChecklist,
   toggleTimestampedChecklist,
   toPlainState,
@@ -213,38 +214,54 @@ describe('timestamped checklist state and conflict resolution', () => {
   });
 });
 
-describe('getLockedIds', () => {
-  it('returns empty set when no items are checked', () => {
-    const locked = getLockedIds({}, requirements);
-    expect(locked.size).toBe(0);
+describe('clearTimestampedBranch (mutual exclusion between the two checklists)', () => {
+  const ts = (state: Record<string, boolean>) =>
+    Object.fromEntries(Object.entries(state).map(([id, value]) => [id, { value, timestamp: 1 }]));
+
+  it('returns no updates when the branch is already clear', () => {
+    const { nextTsState, updates } = clearTimestampedBranch(ts({ 'rf-2': true }), 'rf-1', 'back', 2, requirements);
+    expect(updates).toEqual([]);
+    expect(nextTsState['rf-2'].value).toBe(true);
   });
 
-  it('locks a single checked leaf node', () => {
-    const locked = getLockedIds({ 'rf-2': true }, requirements);
-    expect(locked.has('rf-2')).toBe(true);
-    expect(locked.has('rf-1')).toBe(false);
+  it('clears the node and all its descendants', () => {
+    const state = ts({ 'rf-1': true, 'rf-1-1': true, 'rf-1-2': true, 'rf-2': true });
+    const { nextTsState, updates } = clearTimestampedBranch(state, 'rf-1', 'back', 2, requirements);
+
+    expect(toPlainState(nextTsState)).toEqual({ 'rf-1': false, 'rf-1-1': false, 'rf-1-2': false, 'rf-2': true });
+    expect(updates.map((update) => update.id).sort()).toEqual(['rf-1', 'rf-1-1', 'rf-1-2']);
+    expect(updates.every((update) => update.type === 'back' && update.value === false && update.timestamp === 2)).toBe(true);
   });
 
-  it('locks a parent and all its descendants when parent is checked', () => {
-    const locked = getLockedIds({ 'rf-1': true }, requirements);
-    expect(locked.has('rf-1')).toBe(true);
-    expect(locked.has('rf-1-1')).toBe(true);
-    expect(locked.has('rf-1-2')).toBe(true);
-    expect(locked.has('rf-2')).toBe(false);
+  it('re-derives ancestors that are no longer fully checked', () => {
+    const state = ts({ 'rf-1': true, 'rf-1-1': true, 'rf-1-2': true });
+    const { nextTsState } = clearTimestampedBranch(state, 'rf-1-1', 'back', 2, requirements);
+
+    expect(nextTsState['rf-1-1'].value).toBe(false);
+    expect(nextTsState['rf-1'].value).toBe(false);
+    expect(nextTsState['rf-1-2'].value).toBe(true);
   });
 
-  it('cascades through deeply nested hierarchies', () => {
-    const locked = getLockedIds({ 'rf-3': true }, requirements);
-    expect(locked.has('rf-3')).toBe(true);
-    expect(locked.has('rf-3-1')).toBe(true);
-    expect(locked.has('rf-3-1-1')).toBe(true);
+  it('clears a deeply nested branch through every level', () => {
+    const state = ts({ 'rf-3': true, 'rf-3-1': true, 'rf-3-1-1': true });
+    const { nextTsState } = clearTimestampedBranch(state, 'rf-3-1', 'full', 2, requirements);
+
+    expect(toPlainState(nextTsState)).toEqual({ 'rf-3': false, 'rf-3-1': false, 'rf-3-1-1': false });
   });
 
-  it('locks children even when only a mid-level node is checked', () => {
-    const locked = getLockedIds({ 'rf-3-1': true }, requirements);
-    expect(locked.has('rf-3')).toBe(false);
-    expect(locked.has('rf-3-1')).toBe(true);
-    expect(locked.has('rf-3-1-1')).toBe(true);
+  it('keeps an item out of both checklists when a parent is checked over a child of the other list', () => {
+    // RF 1.1 marked as back-only, then RF 1 (the parent) marked as back+front.
+    const back = ts({ 'rf-1-1': true });
+    const { nextTsState: nextFull } = toggleTimestampedChecklist({}, 'rf-1', 'full', 2, requirements);
+    const { nextTsState: nextBack } = clearTimestampedBranch(back, 'rf-1', 'back', 2, requirements);
+
+    const backPlain = syncParentStates(requirements, toPlainState(nextBack));
+    const fullPlain = syncParentStates(requirements, toPlainState(nextFull));
+
+    expect(fullPlain['rf-1-1']).toBe(true);
+    expect(backPlain['rf-1-1']).toBe(false);
+    expect(countProgress(requirements, backPlain).completed).toBe(0);
+    expect(countProgress(requirements, fullPlain).completed).toBe(3);
   });
 });
 
