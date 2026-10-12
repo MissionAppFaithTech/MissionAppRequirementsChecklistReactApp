@@ -1,42 +1,37 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { ArrowUp, Check, Menu, Search, X } from 'lucide-react';
-import { allRequirements, functionalRequirements, nonFunctionalRequirements, normalizeText, type RequirementNode } from '@/data/requirements';
+import { ArrowUp, Check, Menu, Minus, Search, X } from 'lucide-react';
+import { allRequirements, functionalRequirements, nonFunctionalRequirements, type RequirementNode } from '@/data/requirements';
+import { filterNode, nodeMatches, type FilterMode } from '@/lib/filter';
+import { describeMove } from '@/lib/notice';
 import {
   CHECKLIST_BACK_KEY,
   CHECKLIST_FULL_KEY,
-  clearTimestampedBranch,
   countProgress,
   fetchCloudState,
+  findRequirementNode,
+  isPartiallyChecked,
   loadTimestampedChecklist,
   mergeTimestampedStates,
   resetCloudState,
+  restoreTimestampedState,
   saveTimestampedChecklist,
   syncCloudItems,
   syncParentStates,
-  toggleTimestampedChecklist,
+  toggleExclusive,
   toPlainState,
   type ChecklistState,
   type TimestampedChecklistState,
 } from '@/lib/checklist';
 
-type FilterMode = 'all' | 'open' | 'done';
 type CheckVariant = 'back' | 'full';
 
-function nodeMatches(node: RequirementNode, query: string): boolean {
-  if (!query) return true;
-  const haystack = normalizeText(`${node.code} ${node.title} ${node.description ?? ''}`);
-  return haystack.includes(normalizeText(query)) || Boolean(node.children?.some((child) => nodeMatches(child, query)));
-}
+const NOTICE_TIMEOUT_MS = 10000;
 
-function filterNode(node: RequirementNode, query: string, mode: FilterMode, backState: ChecklistState, fullState: ChecklistState): RequirementNode | null {
-  const children = node.children?.map((child) => filterNode(child, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[] | undefined;
-  const ownMatch = nodeMatches(node, query);
-  const descendantMatch = Boolean(children?.length);
-  const isDone = Boolean(backState[node.id]) || Boolean(fullState[node.id]);
-  const statusMatch = mode === 'all' || (mode === 'done' ? isDone || descendantMatch : !isDone || descendantMatch);
-  if ((!ownMatch && !children?.length) || !statusMatch) return null;
-  return { ...node, children };
-}
+type MoveNotice = {
+  message: string;
+  // Both lists as they were before the move, so "Desfazer" can restore them.
+  snapshot: { back: TimestampedChecklistState; full: TimestampedChecklistState };
+};
 
 function NodeCheck({
   node,
@@ -50,12 +45,14 @@ function NodeCheck({
   onToggle: (id: string) => void;
 }) {
   const label = variant === 'back' ? 'Back completo, front faltando' : 'Back e Front completo';
+  const partial = isPartiallyChecked(node, state);
   return (
     <label
       className="check-wrap"
       title={`Marcar ${node.code} — ${label}`}
     >
       <input
+        ref={(input) => { if (input) input.indeterminate = partial; }}
         className="check-input"
         type="checkbox"
         checked={Boolean(state[node.id])}
@@ -63,7 +60,9 @@ function NodeCheck({
         aria-label={`${label}: ${node.code} ${node.title}`}
       />
       <span className={`check-box check-box--${variant}`} aria-hidden="true">
-        <Check size={15} strokeWidth={2.7} />
+        <span className="check-letter">{variant === 'back' ? 'B' : 'F'}</span>
+        <Check className="check-icon" size={15} strokeWidth={2.7} />
+        <Minus className="partial-icon" size={15} strokeWidth={2.7} />
       </span>
     </label>
   );
@@ -201,6 +200,8 @@ function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeId, setActiveId] = useState('rf-1');
   const [showTop, setShowTop] = useState(false);
+  const [notice, setNotice] = useState<MoveNotice | null>(null);
+  const [noticePaused, setNoticePaused] = useState(false);
 
   // Derive plain boolean states for UI calculation & cascading parents
   const backState = useMemo(() => syncParentStates(allRequirements, toPlainState(backTsState)), [backTsState]);
@@ -252,45 +253,57 @@ function App() {
     return () => observer.disconnect();
   }, [query, mode]);
 
-  const toggleBack = (id: string) => {
-    const timestamp = Date.now();
-    const { nextTsState, updates } = toggleTimestampedChecklist(backTsState, id, 'back', timestamp);
-    setBackTsState(nextTsState);
-    saveTimestampedChecklist(nextTsState, CHECKLIST_BACK_KEY);
-
-    // Checking an item in one checklist moves it out of the other one.
-    const cloudUpdates = [...updates];
-    if (nextTsState[id]?.value) {
-      const cleared = clearTimestampedBranch(fullTsState, id, 'full', timestamp);
-      if (cleared.updates.length) {
-        setFullTsState(cleared.nextTsState);
-        saveTimestampedChecklist(cleared.nextTsState, CHECKLIST_FULL_KEY);
-        cloudUpdates.push(...cleared.updates);
-      }
+  const commitStates = (nextBack: TimestampedChecklistState, nextFull: TimestampedChecklistState) => {
+    if (nextBack !== backTsState) {
+      setBackTsState(nextBack);
+      saveTimestampedChecklist(nextBack, CHECKLIST_BACK_KEY);
     }
-
-    syncCloudItems(cloudUpdates);
+    if (nextFull !== fullTsState) {
+      setFullTsState(nextFull);
+      saveTimestampedChecklist(nextFull, CHECKLIST_FULL_KEY);
+    }
   };
 
-  const toggleFull = (id: string) => {
-    const timestamp = Date.now();
-    const { nextTsState, updates } = toggleTimestampedChecklist(fullTsState, id, 'full', timestamp);
-    setFullTsState(nextTsState);
-    saveTimestampedChecklist(nextTsState, CHECKLIST_FULL_KEY);
+  const toggle = (id: string, type: CheckVariant) => {
+    const isBack = type === 'back';
+    const result = toggleExclusive(isBack ? backTsState : fullTsState, isBack ? fullTsState : backTsState, id, type);
+    commitStates(
+      isBack ? result.nextTsState : result.nextOppositeTsState,
+      isBack ? result.nextOppositeTsState : result.nextTsState,
+    );
+    syncCloudItems(result.updates);
 
-    // Checking an item in one checklist moves it out of the other one.
-    const cloudUpdates = [...updates];
-    if (nextTsState[id]?.value) {
-      const cleared = clearTimestampedBranch(backTsState, id, 'back', timestamp);
-      if (cleared.updates.length) {
-        setBackTsState(cleared.nextTsState);
-        saveTimestampedChecklist(cleared.nextTsState, CHECKLIST_BACK_KEY);
-        cloudUpdates.push(...cleared.updates);
-      }
+    // Checking an item moves it out of the other list: say so, and offer to undo it.
+    const oppositeType: CheckVariant = isBack ? 'full' : 'back';
+    const movedCount = result.updates.filter((update) => update.type === oppositeType && !update.value).length;
+    const node = findRequirementNode(allRequirements, id);
+    if (movedCount > 0 && node) {
+      setNotice({ message: describeMove(node.code, type, movedCount), snapshot: { back: backTsState, full: fullTsState } });
+    } else {
+      // An older undo snapshot would also revert this newer change, so it must go away.
+      setNotice(null);
     }
-
-    syncCloudItems(cloudUpdates);
   };
+
+  const toggleBack = (id: string) => toggle(id, 'back');
+  const toggleFull = (id: string) => toggle(id, 'full');
+
+  const undoMove = () => {
+    if (!notice) return;
+    const timestamp = Date.now();
+    const restoredBack = restoreTimestampedState(backTsState, notice.snapshot.back, 'back', timestamp);
+    const restoredFull = restoreTimestampedState(fullTsState, notice.snapshot.full, 'full', timestamp);
+    commitStates(restoredBack.nextTsState, restoredFull.nextTsState);
+    syncCloudItems([...restoredBack.updates, ...restoredFull.updates]);
+    setNotice(null);
+  };
+
+  // Auto-dismiss the notice, except while the user is hovering/focusing it.
+  useEffect(() => {
+    if (!notice || noticePaused) return undefined;
+    const timer = window.setTimeout(() => setNotice(null), NOTICE_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [notice, noticePaused]);
 
   const visibleFunctional = useMemo(() => functionalRequirements.map((node) => filterNode(node, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[], [query, mode, backState, fullState]);
   const visibleNonFunctional = useMemo(() => nonFunctionalRequirements.map((node) => filterNode(node, query, mode, backState, fullState)).filter(Boolean) as RequirementNode[], [query, mode, backState, fullState]);
@@ -305,13 +318,13 @@ function App() {
         </a>
         <div className="top-actions">
           <div className="top-progress-group">
-            <div className="top-progress" aria-label={`Só back: ${backProgress.percent}% concluído`}>
-              <div className="top-progress-label"><span>Só back</span><span>{backProgress.percent}%</span></div>
-              <div className="progress-track"><div className="progress-fill progress-fill--back" style={{ width: `${backProgress.percent}%` }} /></div>
+            <div className="top-progress">
+              <div className="top-progress-label"><span id="top-progress-back">Só back</span><span>{backProgress.percent}%</span></div>
+              <progress className="progress-track progress-track--back" value={backProgress.percent} max={100} aria-labelledby="top-progress-back" />
             </div>
-            <div className="top-progress" aria-label={`Tudo: ${fullProgress.percent}% concluído`}>
-              <div className="top-progress-label"><span>Tudo</span><span>{fullProgress.percent}%</span></div>
-              <div className="progress-track"><div className="progress-fill progress-fill--full" style={{ width: `${fullProgress.percent}%` }} /></div>
+            <div className="top-progress">
+              <div className="top-progress-label"><span id="top-progress-full">Tudo</span><span>{fullProgress.percent}%</span></div>
+              <progress className="progress-track progress-track--full" value={fullProgress.percent} max={100} aria-labelledby="top-progress-full" />
             </div>
           </div>
           <button className="mobile-menu" type="button" onClick={() => setMobileOpen((open) => !open)} aria-expanded={mobileOpen} aria-controls="doc-sidebar">
@@ -346,11 +359,13 @@ function App() {
           </section>
           <section className="summary-card" aria-label="Resumo do checklist">
             <div className="summary-ring-wrap">
-              <div className="summary-ring summary-ring--back" style={{ '--percent': backProgress.percent } as CSSProperties}><strong>{backProgress.percent}%</strong></div>
+              <div className="summary-ring summary-ring--back" style={{ '--percent': backProgress.percent } as CSSProperties} aria-hidden="true"><strong>{backProgress.percent}%</strong></div>
+              <progress className="sr-only" value={backProgress.percent} max={100} aria-label="Back completo, front faltando" />
               <span className="summary-ring-label summary-ring-label--back">Back completo. Front faltando.</span>
             </div>
             <div className="summary-ring-wrap">
-              <div className="summary-ring summary-ring--full" style={{ '--percent': fullProgress.percent } as CSSProperties}><strong>{fullProgress.percent}%</strong></div>
+              <div className="summary-ring summary-ring--full" style={{ '--percent': fullProgress.percent } as CSSProperties} aria-hidden="true"><strong>{fullProgress.percent}%</strong></div>
+              <progress className="sr-only" value={fullProgress.percent} max={100} aria-label="Back e Front integrados e completos" />
               <span className="summary-ring-label summary-ring-label--full">Back e Front integrados e completos.</span>
             </div>
             <div className="summary-copy"><h2>O desenvolvimento está avançando.</h2><p>Marque cada requisito individualmente. Seu progresso é sincronizado na nuvem e salvo neste dispositivo.</p></div>
@@ -377,13 +392,18 @@ function App() {
           <div className="legend-strip">
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--back" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
-              Back completo. Front faltando.
+              Caixa <strong>B</strong>: back completo. Front faltando.
             </div>
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--full" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
-              Back e Front integrados e completos.
+              Caixa <strong>F</strong>: back e front integrados e completos.
+            </div>
+            <div className="legend-item">
+              <span className="legend-checkbox legend-checkbox--partial" aria-hidden="true"><Minus size={14} strokeWidth={3} /></span>
+              Traço: só parte dos subitens está marcada.
             </div>
           </div>
+          <p className="legend-note">Cada item fica em uma só caixa: ao marcar uma, a outra é desmarcada. Você pode desfazer logo após a troca.</p>
 
           <div className="section-heading">
             <h2>Escopo do produto</h2>
@@ -432,6 +452,22 @@ function App() {
           )}
         </main>
       </div>
+      <div className="sr-only" role="status" aria-live="polite">{notice?.message ?? ''}</div>
+      {notice && (
+        <div
+          className="toast"
+          role="group"
+          aria-label="Aviso de troca de lista"
+          onMouseEnter={() => setNoticePaused(true)}
+          onMouseLeave={() => setNoticePaused(false)}
+          onFocus={() => setNoticePaused(true)}
+          onBlur={() => setNoticePaused(false)}
+        >
+          <p className="toast-text">{notice.message}</p>
+          <button className="toast-action" type="button" onClick={undoMove}>Desfazer</button>
+          <button className="toast-close" type="button" onClick={() => setNotice(null)} aria-label="Fechar aviso"><X size={14} /></button>
+        </div>
+      )}
       <button className={`back-top${showTop ? ' visible' : ''}`} type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Voltar ao topo"><ArrowUp size={18} /></button>
     </div>
   );

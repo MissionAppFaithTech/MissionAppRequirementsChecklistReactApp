@@ -220,23 +220,20 @@ export const toggleTimestampedChecklist = (
   timestamp: number = Date.now(),
   nodes: RequirementNode[] = allRequirements,
 ): { nextTsState: TimestampedChecklistState; updates: UpdatePayloadItem[] } => {
-  const currentPlain = toPlainState(tsState);
+  // Start from the state the user sees (parents derived from children), so a stale stored
+  // parent value can never turn a click into a no-op.
+  const currentPlain = syncParentStates(nodes, toPlainState(tsState));
   const nextPlain = toggleChecklist(currentPlain, id, nodes);
 
   const nextTsState: TimestampedChecklistState = { ...tsState };
   const updates: UpdatePayloadItem[] = [];
 
-  const allNodeIds = flattenRequirements(nodes).map((n) => n.id);
-
-  for (const nodeId of allNodeIds) {
-    const prevVal = Boolean(currentPlain[nodeId]);
+  for (const { id: nodeId } of flattenRequirements(nodes)) {
     const newVal = Boolean(nextPlain[nodeId]);
+    if (Boolean(currentPlain[nodeId]) === newVal) continue;
 
-    if (prevVal !== newVal || !tsState[nodeId]) {
-      const item: TimestampedItem = { value: newVal, timestamp };
-      nextTsState[nodeId] = item;
-      updates.push({ id: nodeId, type, value: newVal, timestamp });
-    }
+    nextTsState[nodeId] = { value: newVal, timestamp };
+    updates.push({ id: nodeId, type, value: newVal, timestamp });
   }
 
   return { nextTsState, updates };
@@ -273,6 +270,74 @@ export const clearTimestampedBranch = (
     if (Boolean(currentPlain[node.id]) === newVal) continue;
     nextTsState[node.id] = { value: newVal, timestamp };
     updates.push({ id: node.id, type, value: newVal, timestamp });
+  }
+
+  return { nextTsState, updates };
+};
+
+/**
+ * Toggles an item in one checklist and, when that CHECKS it, moves it (and its branch) out of the
+ * opposite checklist so an item is never "back only" and "back+front" at once.
+ * `updates` holds the changes of both checklists, ready for a single cloud POST.
+ */
+export const toggleExclusive = (
+  tsState: TimestampedChecklistState,
+  oppositeTsState: TimestampedChecklistState,
+  id: string,
+  type: 'back' | 'full',
+  timestamp: number = Date.now(),
+  nodes: RequirementNode[] = allRequirements,
+): {
+  nextTsState: TimestampedChecklistState;
+  nextOppositeTsState: TimestampedChecklistState;
+  updates: UpdatePayloadItem[];
+} => {
+  const toggled = toggleTimestampedChecklist(tsState, id, type, timestamp, nodes);
+  if (!toggled.nextTsState[id]?.value) {
+    return { nextTsState: toggled.nextTsState, nextOppositeTsState: oppositeTsState, updates: toggled.updates };
+  }
+
+  const cleared = clearTimestampedBranch(oppositeTsState, id, type === 'back' ? 'full' : 'back', timestamp, nodes);
+  return {
+    nextTsState: toggled.nextTsState,
+    nextOppositeTsState: cleared.updates.length ? cleared.nextTsState : oppositeTsState,
+    updates: [...toggled.updates, ...cleared.updates],
+  };
+};
+
+/**
+ * True when a parent is NOT checked in this list but some of its descendants are
+ * (the "indeterminate" checkbox state). Leaves are never partial.
+ */
+export const isPartiallyChecked = (node: RequirementNode, state: ChecklistState): boolean =>
+  Boolean(node.children?.length) &&
+  !state[node.id] &&
+  getDescendantIds(node).slice(1).some((id) => Boolean(state[id]));
+
+/**
+ * Brings `current` back to the (derived) values of `previous`, stamping every changed id with
+ * `timestamp` so the revert also wins the "latest timestamp" conflict rule in the cloud.
+ * Used by "undo": only genuinely different ids are written and returned as updates.
+ */
+export const restoreTimestampedState = (
+  current: TimestampedChecklistState,
+  previous: TimestampedChecklistState,
+  type: 'back' | 'full',
+  timestamp: number = Date.now(),
+  nodes: RequirementNode[] = allRequirements,
+): { nextTsState: TimestampedChecklistState; updates: UpdatePayloadItem[] } => {
+  const currentPlain = syncParentStates(nodes, toPlainState(current));
+  const previousPlain = syncParentStates(nodes, toPlainState(previous));
+
+  const nextTsState: TimestampedChecklistState = { ...current };
+  const updates: UpdatePayloadItem[] = [];
+
+  for (const { id } of flattenRequirements(nodes)) {
+    const target = Boolean(previousPlain[id]);
+    if (Boolean(currentPlain[id]) === target) continue;
+
+    nextTsState[id] = { value: target, timestamp };
+    updates.push({ id, type, value: target, timestamp });
   }
 
   return { nextTsState, updates };
