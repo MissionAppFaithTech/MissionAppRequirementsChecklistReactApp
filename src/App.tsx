@@ -350,7 +350,7 @@ function App() {
             <span className="eyebrow">Documentação do Progresso</span>
             <h1>Especificação de requisitos do <em>Mission App</em></h1>
             <p className="hero-lede">Uma plataforma para conscientizar igrejas sobre o trabalho missionário realizado ao redor do mundo através de campanhas recorrentes, conexões e projetos de impacto.</p>
-            <div className="hero-meta"><span>Última revisão: 12 set 2025</span><a href="https://github.com/MissionAppFaithTech" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://www.figma.com/design/uMAwJPYKaEoN7ScjAmgZ6O/Mission-app" target="_blank" rel="noreferrer">Design no Figma ↗</a></div>
+            <div className="hero-meta"><span>Última revisão: 12 out 2026</span><a href="https://github.com/MissionAppFaithTech" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://www.figma.com/design/uMAwJPYKaEoN7ScjAmgZ6O/Mission-app" target="_blank" rel="noreferrer">Design no Figma ↗</a></div>
             <div className="hero-site-link">
               <span>Site com todos os requisitos especificados e detalhados:</span>
               <br />
@@ -392,15 +392,15 @@ function App() {
           <div className="legend-strip">
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--back" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
-              Caixa <strong>B</strong>: back completo. Front faltando.
+              <span>Caixa <strong>B</strong>: back completo. Front faltando.</span>
             </div>
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--full" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
-              Caixa <strong>F</strong>: back e front integrados e completos.
+              <span>Caixa <strong>F</strong>: back e front integrados e completos.</span>
             </div>
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--partial" aria-hidden="true"><Minus size={14} strokeWidth={3} /></span>
-              Traço: só parte dos subitens está marcada.
+              <span><strong>Traço</strong> somente parte dos subitens está marcada nesta sessão.</span>
             </div>
           </div>
           <p className="legend-note">Cada item fica em uma só caixa: ao marcar uma, a outra é desmarcada. Você pode desfazer logo após a troca.</p>
