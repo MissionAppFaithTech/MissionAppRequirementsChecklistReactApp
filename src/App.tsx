@@ -400,7 +400,7 @@ function App() {
             </div>
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--partial" aria-hidden="true"><Minus size={14} strokeWidth={3} /></span>
-              <span><strong>Traço</strong> somente parte dos subitens está marcada nesta sessão.</span>
+              <span><strong>Traço:</strong> somente parte dos subitens está marcado como pronto neste item.</span>
             </div>
           </div>
           <p className="legend-note">Cada item fica em uma só caixa: ao marcar uma, a outra é desmarcada. Você pode desfazer logo após a troca.</p>
