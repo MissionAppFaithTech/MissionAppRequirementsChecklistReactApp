@@ -111,27 +111,28 @@ describe('restoreTimestampedState (undo)', () => {
     vi.useRealTimers();
   });
 
-  it('undoing a move restores BOTH lists exactly (the user scenario)', () => {
+  it('undoing restores BOTH lists exactly (the user scenario)', () => {
     const back0 = ts({ 'rf-1-1': true });
-    const full0 = ts({});
+    const full0 = ts({ 'rf-1-1': true });
 
-    // user checks the parent as "full": the child leaves "back"
-    const moved = toggleExclusive(full0, back0, 'rf-1', 'full', 5, fixture);
+    // user unchecks "back" on the parent: child is cleared in both back and full
+    const result = toggleExclusive(back0, full0, 'rf-1-1', 'back', 5, fixture);
 
     // undo: put both lists back using the snapshot taken before the click
-    const undoFull = restoreTimestampedState(moved.nextTsState, full0, 'full', 9, fixture);
-    const undoBack = restoreTimestampedState(moved.nextOppositeTsState, back0, 'back', 9, fixture);
+    const undoBack = restoreTimestampedState(result.nextTsState, back0, 'back', 9, fixture);
+    const undoFull = restoreTimestampedState(result.nextOppositeTsState, full0, 'full', 9, fixture);
 
-    expect(checkedIds(derived(undoFull.nextTsState))).toEqual([]);
     expect(checkedIds(derived(undoBack.nextTsState))).toEqual(['rf-1-1']);
-    expect([...undoFull.updates, ...undoBack.updates].every((u) => u.timestamp === 9)).toBe(true);
+    expect(checkedIds(derived(undoFull.nextTsState))).toEqual(['rf-1-1']);
+    expect([...undoBack.updates, ...undoFull.updates].every((u) => u.timestamp === 9)).toBe(true);
   });
 
-  it('undo wins over the move in the cloud conflict rule (newer timestamp)', () => {
+  it('undo wins over the change in the cloud conflict rule (newer timestamp)', () => {
     const back0 = ts({ 'rf-2': true }, 1);
-    const moved = toggleExclusive({}, back0, 'rf-2', 'full', 5, fixture);
-    const undo = restoreTimestampedState(moved.nextOppositeTsState, back0, 'back', 9, fixture);
-    const clearedAt = moved.nextOppositeTsState['rf-2'].timestamp;
+    const full0 = ts({ 'rf-2': true }, 1);
+    const changed = toggleExclusive(back0, full0, 'rf-2', 'back', 5, fixture);
+    const undo = restoreTimestampedState(changed.nextTsState, back0, 'back', 9, fixture);
+    const clearedAt = changed.nextTsState['rf-2'].timestamp;
     expect(undo.nextTsState['rf-2'].timestamp).toBeGreaterThan(clearedAt);
     expect(undo.nextTsState['rf-2'].value).toBe(true);
   });
@@ -139,15 +140,15 @@ describe('restoreTimestampedState (undo)', () => {
 
 describe('describeMove', () => {
   it('describes a single item moved to full', () => {
-    expect(describeMove('RF 1.1', 'full', 1)).toBe('RF 1.1 movido de “Só back” para “Back e Front”.');
+    expect(describeMove('RF 1.1', 'full', 1)).toBe('RF 1.1 movido de “Back” para “Back e Front”.');
   });
 
   it('describes a single item moved to back', () => {
-    expect(describeMove('RF 2', 'back', 1)).toBe('RF 2 movido de “Back e Front” para “Só back”.');
+    expect(describeMove('RF 2', 'back', 1)).toBe('RF 2 movido de “Back e Front” para “Back”.');
   });
 
   it('mentions how many items moved when more than one', () => {
-    expect(describeMove('RF 1', 'full', 3)).toBe('RF 1 movido de “Só back” para “Back e Front” (3 itens).');
+    expect(describeMove('RF 1', 'full', 3)).toBe('RF 1 movido de “Back” para “Back e Front” (3 itens).');
   });
 
   it('does not add the count for 0 or 1', () => {

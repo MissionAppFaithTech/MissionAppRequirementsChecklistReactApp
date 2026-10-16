@@ -12,6 +12,7 @@ pnpm build                            # production build -> dist/
 pnpm preview                          # serve the built output
 pnpm typecheck                        # tsc --noEmit (tests are excluded from tsconfig)
 pnpm test                             # vitest run (all tests, non-watch)
+pnpm reset:redis                      # erases the Vercel Redis (KV) database
 pnpm vitest run src/lib/checklist.test.ts             # single file
 pnpm vitest run -t "merges remote state"              # single test by name
 pnpm vitest                                           # watch mode
@@ -38,7 +39,7 @@ All state logic is here, pure and tested; `App.tsx` only wires it to React. Key 
 
 - **Two state shapes.** `TimestampedChecklistState` (`{[id]: {value, timestamp}}`) is what's persisted and synced. `ChecklistState` (`{[id]: boolean}`) is derived via `toPlainState` for rendering. Never persist the plain form.
 - **Cascade down, roll up.** `toggleChecklist` writes the new value to the node *and all descendants* (`getDescendantIds`); `syncParentStates` then recomputes every parent as "checked iff all children checked". The plain state rendered by `App` is always passed through `syncParentStates`, so parent booleans are derived, not authoritative.
-- **Mutual exclusion between the two checklists.** The two boxes are *states*, not cumulative steps: an item is either "back only" or "back+front", never both. `toggleExclusive(own, opposite, id, type, ts)` toggles in one list and, when that *checks* the item, `clearTimestampedBranch` clears the node and all its descendants in the other list (ancestors re-derived via `syncParentStates`). It returns `updates` for both lists (only genuinely changed ids). Nothing is disabled in the UI (the old `getLockedIds` lock only looked at ancestors, so checking a parent left a child checked in both lists).
+- **Cumulative progression between checklists.** `full` implies `back`: checking an item in `full` guarantees that `back` is also checked and never clears or decrements `back`. Unchecking `back` unchecks `full`. Unchecking `full` leaves `back` intact. Toggling is handled via `toggleCumulative` (and `toggleExclusive` compatibility alias).
 - **Toggles act on the derived state.** `toggleTimestampedChecklist` starts from `syncParentStates(toPlainState(ts))`, so a stale stored parent can never make a click a no-op, and it emits updates ONLY for ids whose derived value changed (never mass `false` for ids without local entry: that would overwrite other people's newer-than-local data in the cloud).
 - **Undo and partial state.** `restoreTimestampedState` reverts a list to a previous snapshot (stamping changed ids with a new timestamp so it wins in the cloud); `App` keeps one snapshot for the "Desfazer" toast and drops it on any later toggle. `isPartiallyChecked` drives the indeterminate (dash) state of parent checkboxes. `describeMove` (`src/lib/notice.ts`) builds the toast text.
 - **Conflict resolution is per-item "latest timestamp wins"**, implemented twice and deliberately mirrored: `mergeTimestampedStates` on the client and the update loop in `api/checklist.ts`. Change one, change the other.

@@ -206,32 +206,43 @@ describe('clearTimestampedBranch (additional edge cases)', () => {
   });
 });
 
-describe('toggleExclusive', () => {
-  it('checking a leaf in one list leaves the other list untouched (same reference) when nothing to clear', () => {
+describe('toggleExclusive (cumulative dual checklist semantics)', () => {
+  it('checking a leaf in back leaves full untouched when nothing was full', () => {
     const other = ts({ 'rf-2': true });
     const result = toggleExclusive({}, other, 'rf-1-1', 'back', 5, fixture);
     expect(result.nextOppositeTsState).toBe(other);
     expect(result.updates.map((u) => u.type)).toEqual(['back']);
   });
 
-  it('checking an item moves it out of the other list', () => {
-    const full = ts({ 'rf-1-1': true });
-    const result = toggleExclusive({}, full, 'rf-1-1', 'back', 5, fixture);
+  it('checking an item in full ensures it is also marked in back (cumulative progress)', () => {
+    const back = ts({});
+    const result = toggleExclusive({}, back, 'rf-1-1', 'full', 5, fixture);
     expect(derived(result.nextTsState)['rf-1-1']).toBe(true);
-    expect(derived(result.nextOppositeTsState)['rf-1-1']).toBe(false);
+    expect(derived(result.nextOppositeTsState)['rf-1-1']).toBe(true);
+    expect(result.updates).toContainEqual({ id: 'rf-1-1', type: 'full', value: true, timestamp: 5 });
     expect(result.updates).toContainEqual({ id: 'rf-1-1', type: 'back', value: true, timestamp: 5 });
-    expect(result.updates).toContainEqual({ id: 'rf-1-1', type: 'full', value: false, timestamp: 5 });
   });
 
-  it('UNchecking never touches the other list', () => {
+  it('unchecking full leaves back intact (backend is still done)', () => {
+    const full = ts({ 'rf-2': true });
     const back = ts({ 'rf-2': true });
-    const full = ts({ 'rf-1-1': true });
-    const result = toggleExclusive(back, full, 'rf-2', 'back', 5, fixture);
-    expect(result.nextOppositeTsState).toBe(full);
-    expect(result.updates).toEqual([{ id: 'rf-2', type: 'back', value: false, timestamp: 5 }]);
+    const result = toggleExclusive(full, back, 'rf-2', 'full', 5, fixture);
+    expect(derived(result.nextTsState)['rf-2']).toBe(false);
+    expect(derived(result.nextOppositeTsState)['rf-2']).toBe(true);
+    expect(result.updates).toEqual([{ id: 'rf-2', type: 'full', value: false, timestamp: 5 }]);
   });
 
-  it('the reported colleague scenario: child marked "back", then parent marked "full"', () => {
+  it('unchecking back cascades to uncheck full (since full requires backend)', () => {
+    const back = ts({ 'rf-2': true });
+    const full = ts({ 'rf-2': true });
+    const result = toggleExclusive(back, full, 'rf-2', 'back', 5, fixture);
+    expect(derived(result.nextTsState)['rf-2']).toBe(false);
+    expect(derived(result.nextOppositeTsState)['rf-2']).toBe(false);
+    expect(result.updates).toContainEqual({ id: 'rf-2', type: 'back', value: false, timestamp: 5 });
+    expect(result.updates).toContainEqual({ id: 'rf-2', type: 'full', value: false, timestamp: 5 });
+  });
+
+  it('the reported colleague scenario: child marked "back", then parent marked "full" (back count never drops)', () => {
     const back = ts({ 'rf-1-1': true });
     const result = toggleExclusive({}, back, 'rf-1', 'full', 5, fixture);
 
@@ -239,50 +250,29 @@ describe('toggleExclusive', () => {
     const fullPlain = derived(result.nextTsState);
 
     expect(checkedIds(fullPlain)).toEqual(['rf-1', 'rf-1-1', 'rf-1-2']);
-    expect(checkedIds(backPlain)).toEqual([]);
-    expect(countProgress(fixture, backPlain).completed).toBe(0);
+    expect(checkedIds(backPlain)).toEqual(['rf-1', 'rf-1-1', 'rf-1-2']);
+    expect(countProgress(fixture, backPlain).completed).toBe(3);
     expect(countProgress(fixture, fullPlain).completed).toBe(3);
   });
 
-  it('marking the parent "back" over children in "full" takes only the branch, not other items', () => {
-    const full = ts({ 'rf-1-1': true, 'rf-2': true });
-    const result = toggleExclusive({}, full, 'rf-1', 'back', 5, fixture);
-    expect(checkedIds(derived(result.nextOppositeTsState))).toEqual(['rf-2']);
-  });
-
-  it('completing a parent through its last child in one list keeps a sibling that lives in the other list there', () => {
-    // rf-1-1 is "full"; user checks rf-1-2 as "back" -> parent is complete in NEITHER list.
+  it('completing a parent through its last child in back keeps existing full child intact', () => {
+    // rf-1-1 is "full" (and thus "back"); user checks rf-1-2 as "back" -> parent is complete in back, not in full.
     const full = ts({ 'rf-1-1': true });
-    const result = toggleExclusive({}, full, 'rf-1-2', 'back', 5, fixture);
-    expect(checkedIds(derived(result.nextTsState))).toEqual(['rf-1-2']);
+    const back = ts({ 'rf-1-1': true });
+    const result = toggleExclusive(back, full, 'rf-1-2', 'back', 5, fixture);
+    expect(checkedIds(derived(result.nextTsState))).toEqual(['rf-1', 'rf-1-1', 'rf-1-2']);
     expect(checkedIds(derived(result.nextOppositeTsState))).toEqual(['rf-1-1']);
   });
 
-  it('moving an item back and forth ends up in the last list chosen only', () => {
-    let back: TimestampedChecklistState = {};
-    let full: TimestampedChecklistState = {};
-    const steps: Array<['back' | 'full', number]> = [['back', 1], ['full', 2], ['back', 3], ['full', 4]];
-    for (const [type, time] of steps) {
-      if (type === 'back') {
-        const r = toggleExclusive(back, full, 'rf-4-2', 'back', time, fixture);
-        back = r.nextTsState;
-        full = r.nextOppositeTsState;
-      } else {
-        const r = toggleExclusive(full, back, 'rf-4-2', 'full', time, fixture);
-        full = r.nextTsState;
-        back = r.nextOppositeTsState;
-      }
-    }
-    expect(checkedIds(derived(full))).toEqual(['rf-4-2', 'rf-4-2-1', 'rf-4-2-2']);
-    expect(checkedIds(derived(back))).toEqual([]);
-  });
+  it('checking then unchecking full leaves back intact', () => {
+    const back = ts({ 'rf-2': true });
+    const checked = toggleExclusive({}, back, 'rf-2', 'full', 5, fixture);
+    expect(derived(checked.nextTsState)['rf-2']).toBe(true);
+    expect(derived(checked.nextOppositeTsState)['rf-2']).toBe(true);
 
-  it('checking then unchecking the same box leaves that list empty (the other list stays cleared)', () => {
-    const full = ts({ 'rf-2': true });
-    const checked = toggleExclusive({}, full, 'rf-2', 'back', 5, fixture);
-    const unchecked = toggleExclusive(checked.nextTsState, checked.nextOppositeTsState, 'rf-2', 'back', 6, fixture);
+    const unchecked = toggleExclusive(checked.nextTsState, checked.nextOppositeTsState, 'rf-2', 'full', 6, fixture);
     expect(derived(unchecked.nextTsState)['rf-2']).toBe(false);
-    expect(derived(unchecked.nextOppositeTsState)['rf-2']).toBe(false);
+    expect(derived(unchecked.nextOppositeTsState)['rf-2']).toBe(true);
   });
 
   it('does not mutate either input state', () => {
@@ -330,7 +320,7 @@ describe.each([
 ])('random walk invariants — %s', (_label, nodes) => {
   const ids = flattenRequirements(nodes).map((n) => n.id);
 
-  it.each([1, 2, 3, 42, 2026])('seed %i: lists stay disjoint, sync is lossless and updates are minimal', (seed) => {
+  it.each([1, 2, 3, 42, 2026])('seed %i: full implies back, sync is lossless and updates are minimal', (seed) => {
     const random = seededRandom(seed);
     let back: TimestampedChecklistState = {};
     let full: TimestampedChecklistState = {};
@@ -357,14 +347,14 @@ describe.each([
       const nextBack = derived(back, nodes);
       const nextFull = derived(full, nodes);
 
-      // 1. mutual exclusion: no node is checked in both lists
-      const both = ids.filter((nodeId) => nextBack[nodeId] && nextFull[nodeId]);
-      expect(both, `step ${step} (${type} ${id})`).toEqual([]);
+      // 1. cumulative invariant: full implies back (every full node is also done in back)
+      const missingBack = ids.filter((nodeId) => nextFull[nodeId] && !nextBack[nodeId]);
+      expect(missingBack, `step ${step} (${type} ${id})`).toEqual([]);
 
-      // 2. combined progress never exceeds the number of nodes
+      // 2. full progress never exceeds back progress
       expect(
-        countProgress(nodes, nextBack).completed + countProgress(nodes, nextFull).completed,
-      ).toBeLessThanOrEqual(ids.length);
+        countProgress(nodes, nextFull).completed,
+      ).toBeLessThanOrEqual(countProgress(nodes, nextBack).completed);
 
       // 3. minimal updates: every update is a real change of the derived value, unique per (type, id)
       const seen = new Set<string>();

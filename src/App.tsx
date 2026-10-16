@@ -17,7 +17,7 @@ import {
   saveTimestampedChecklist,
   syncCloudItems,
   syncParentStates,
-  toggleExclusive,
+  toggleCumulative,
   toPlainState,
   type ChecklistState,
   type TimestampedChecklistState,
@@ -73,7 +73,7 @@ function NodeMeta({ node, backState, fullState }: { node: RequirementNode; backS
   const fullProgress = countProgress([node], fullState);
   return (
     <div className="req-meta-group">
-      <span className="req-count req-count--back">{backProgress.completed}/{backProgress.total} só back</span>
+      <span className="req-count req-count--back">{backProgress.completed}/{backProgress.total} back</span>
       <span className="req-count req-count--full">{fullProgress.completed}/{fullProgress.total} full</span>
     </div>
   );
@@ -266,21 +266,16 @@ function App() {
 
   const toggle = (id: string, type: CheckVariant) => {
     const isBack = type === 'back';
-    const result = toggleExclusive(isBack ? backTsState : fullTsState, isBack ? fullTsState : backTsState, id, type);
-    commitStates(
-      isBack ? result.nextTsState : result.nextOppositeTsState,
-      isBack ? result.nextOppositeTsState : result.nextTsState,
-    );
+    const result = toggleCumulative(backTsState, fullTsState, id, type);
+    commitStates(result.nextBackTsState, result.nextFullTsState);
     syncCloudItems(result.updates);
 
-    // Checking an item moves it out of the other list: say so, and offer to undo it.
-    const oppositeType: CheckVariant = isBack ? 'full' : 'back';
-    const movedCount = result.updates.filter((update) => update.type === oppositeType && !update.value).length;
+    // If unchecking back caused full to also be unchecked, provide an undo notice.
+    const uncheckFullCount = result.updates.filter((update) => update.type === 'full' && !update.value).length;
     const node = findRequirementNode(allRequirements, id);
-    if (movedCount > 0 && node) {
-      setNotice({ message: describeMove(node.code, type, movedCount), snapshot: { back: backTsState, full: fullTsState } });
+    if (isBack && uncheckFullCount > 0 && node) {
+      setNotice({ message: `${node.code} desmarcado (Back e Full).`, snapshot: { back: backTsState, full: fullTsState } });
     } else {
-      // An older undo snapshot would also revert this newer change, so it must go away.
       setNotice(null);
     }
   };
@@ -319,11 +314,11 @@ function App() {
         <div className="top-actions">
           <div className="top-progress-group">
             <div className="top-progress">
-              <div className="top-progress-label"><span id="top-progress-back">Só back</span><span>{backProgress.percent}%</span></div>
+              <div className="top-progress-label"><span id="top-progress-back">Back</span><span>{backProgress.percent}%</span></div>
               <progress className="progress-track progress-track--back" value={backProgress.percent} max={100} aria-labelledby="top-progress-back" />
             </div>
             <div className="top-progress">
-              <div className="top-progress-label"><span id="top-progress-full">Tudo</span><span>{fullProgress.percent}%</span></div>
+              <div className="top-progress-label"><span id="top-progress-full">Full</span><span>{fullProgress.percent}%</span></div>
               <progress className="progress-track progress-track--full" value={fullProgress.percent} max={100} aria-labelledby="top-progress-full" />
             </div>
           </div>
@@ -360,8 +355,8 @@ function App() {
           <section className="summary-card" aria-label="Resumo do checklist">
             <div className="summary-ring-wrap">
               <div className="summary-ring summary-ring--back" style={{ '--percent': backProgress.percent } as CSSProperties} aria-hidden="true"><strong>{backProgress.percent}%</strong></div>
-              <progress className="sr-only" value={backProgress.percent} max={100} aria-label="Back completo, front faltando" />
-              <span className="summary-ring-label summary-ring-label--back">Back completo. Front faltando.</span>
+              <progress className="sr-only" value={backProgress.percent} max={100} aria-label="Progresso do backend" />
+              <span className="summary-ring-label summary-ring-label--back">Backend concluído.</span>
             </div>
             <div className="summary-ring-wrap">
               <div className="summary-ring summary-ring--full" style={{ '--percent': fullProgress.percent } as CSSProperties} aria-hidden="true"><strong>{fullProgress.percent}%</strong></div>
@@ -375,7 +370,7 @@ function App() {
                   <span className="summary-stat-dot summary-stat-dot--back" />
                   <strong>{backProgress.completed} / {backProgress.total}</strong>
                 </div>
-                <span>back sem front</span>
+                <span>backend concluído</span>
               </div>
               <div className="summary-stat-block">
                 <div className="summary-stat-row">
@@ -392,18 +387,18 @@ function App() {
           <div className="legend-strip">
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--back" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
-              <span>Caixa <strong>B</strong>: back completo. Front faltando.</span>
+              <span>Caixa <strong>B</strong>: backend concluído.</span>
             </div>
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--full" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>
-              <span>Caixa <strong>F</strong>: back e front integrados e completos.</span>
+              <span>Caixa <strong>F</strong>: back e front integrados e completos (Full).</span>
             </div>
             <div className="legend-item">
               <span className="legend-checkbox legend-checkbox--partial" aria-hidden="true"><Minus size={14} strokeWidth={3} /></span>
               <span><strong>Traço:</strong> somente parte dos subitens está marcado como pronto neste item.</span>
             </div>
           </div>
-          <p className="legend-note">Cada item fica em uma só caixa: ao marcar uma, a outra é desmarcada. Você pode desfazer logo após a troca.</p>
+          <p className="legend-note">Marcar Full (F) conclui o requisito por completo (backend + frontend). Você pode marcar Backend (B) separadamente enquanto o frontend ainda estiver em desenvolvimento.</p>
 
           <div className="section-heading">
             <h2>Escopo do produto</h2>

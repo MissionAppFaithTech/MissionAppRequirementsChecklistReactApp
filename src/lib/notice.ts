@@ -1,7 +1,7 @@
 export type ChecklistType = 'back' | 'full';
 
 export const CHECKLIST_LABELS: Record<ChecklistType, string> = {
-  back: 'Só back',
+  back: 'Back',
   full: 'Back e Front',
 };
 

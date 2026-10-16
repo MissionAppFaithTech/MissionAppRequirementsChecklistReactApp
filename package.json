@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "reset:redis": "node scripts/reset-redis.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

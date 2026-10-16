@@ -276,9 +276,112 @@ export const clearTimestampedBranch = (
 };
 
 /**
- * Toggles an item in one checklist and, when that CHECKS it, moves it (and its branch) out of the
- * opposite checklist so an item is never "back only" and "back+front" at once.
- * `updates` holds the changes of both checklists, ready for a single cloud POST.
+ * Toggles an item in a cumulative dual-checklist system:
+ * - `back`: backend complete.
+ * - `full`: full implementation complete (backend + frontend).
+ *
+ * Invariants:
+ * 1. `full` implies `back`: an item can only be `full` if its `back` is also complete.
+ * 2. When checking `full`, `back` is automatically marked completed as well for the node and its descendants.
+ *    Marking `full` NEVER clears or decrements `back`.
+ * 3. When unchecking `full`, `back` remains checked (backend is still done).
+ * 4. When unchecking `back`, `full` is also unchecked (since full requires back).
+ * 5. When checking `back`, `full` remains unchanged.
+ */
+export const toggleCumulative = (
+  backTsState: TimestampedChecklistState,
+  fullTsState: TimestampedChecklistState,
+  id: string,
+  type: 'back' | 'full',
+  timestamp: number = Date.now(),
+  nodes: RequirementNode[] = allRequirements,
+): {
+  nextBackTsState: TimestampedChecklistState;
+  nextFullTsState: TimestampedChecklistState;
+  updates: UpdatePayloadItem[];
+} => {
+  if (type === 'full') {
+    const toggledFull = toggleTimestampedChecklist(fullTsState, id, 'full', timestamp, nodes);
+    let nextFullTsState = toggledFull.nextTsState;
+    let nextBackTsState = backTsState;
+    const updates: UpdatePayloadItem[] = [...toggledFull.updates];
+
+    const currentFullPlain = syncParentStates(nodes, toPlainState(nextFullTsState));
+    const isNowCheckedInFull = Boolean(currentFullPlain[id]);
+
+    if (isNowCheckedInFull) {
+      // Checking full ensures the node and all its descendants are also checked in back.
+      const targetNode = findRequirementNode(nodes, id);
+      const branchIds = targetNode ? getDescendantIds(targetNode) : [id];
+      const currentBackPlain = syncParentStates(nodes, toPlainState(backTsState));
+      const nextBackPlain = { ...currentBackPlain };
+      let anyBackChanged = false;
+
+      for (const branchId of branchIds) {
+        if (!nextBackPlain[branchId]) {
+          nextBackPlain[branchId] = true;
+          anyBackChanged = true;
+        }
+      }
+
+      if (anyBackChanged) {
+        const syncedBackPlain = syncParentStates(nodes, nextBackPlain);
+        nextBackTsState = { ...backTsState };
+        for (const node of flattenRequirements(nodes)) {
+          const newVal = Boolean(syncedBackPlain[node.id]);
+          if (Boolean(currentBackPlain[node.id]) !== newVal) {
+            nextBackTsState[node.id] = { value: newVal, timestamp };
+            updates.push({ id: node.id, type: 'back', value: newVal, timestamp });
+          }
+        }
+      }
+    }
+
+    return { nextBackTsState, nextFullTsState, updates };
+  } else {
+    // type === 'back'
+    const toggledBack = toggleTimestampedChecklist(backTsState, id, 'back', timestamp, nodes);
+    let nextBackTsState = toggledBack.nextTsState;
+    let nextFullTsState = fullTsState;
+    const updates: UpdatePayloadItem[] = [...toggledBack.updates];
+
+    const currentBackPlain = syncParentStates(nodes, toPlainState(nextBackTsState));
+    const isNowCheckedInBack = Boolean(currentBackPlain[id]);
+
+    if (!isNowCheckedInBack) {
+      // Unchecking back means full cannot remain checked for this node and its descendants.
+      const targetNode = findRequirementNode(nodes, id);
+      const branchIds = targetNode ? getDescendantIds(targetNode) : [id];
+      const currentFullPlain = syncParentStates(nodes, toPlainState(fullTsState));
+      const nextFullPlain = { ...currentFullPlain };
+      let anyFullChanged = false;
+
+      for (const branchId of branchIds) {
+        if (nextFullPlain[branchId]) {
+          nextFullPlain[branchId] = false;
+          anyFullChanged = true;
+        }
+      }
+
+      if (anyFullChanged) {
+        const syncedFullPlain = syncParentStates(nodes, nextFullPlain);
+        nextFullTsState = { ...fullTsState };
+        for (const node of flattenRequirements(nodes)) {
+          const newVal = Boolean(syncedFullPlain[node.id]);
+          if (Boolean(currentFullPlain[node.id]) !== newVal) {
+            nextFullTsState[node.id] = { value: newVal, timestamp };
+            updates.push({ id: node.id, type: 'full', value: newVal, timestamp });
+          }
+        }
+      }
+    }
+
+    return { nextBackTsState, nextFullTsState, updates };
+  }
+};
+
+/**
+ * Compatibility wrapper for toggleExclusive, delegating to cumulative semantics.
  */
 export const toggleExclusive = (
   tsState: TimestampedChecklistState,
@@ -292,16 +395,16 @@ export const toggleExclusive = (
   nextOppositeTsState: TimestampedChecklistState;
   updates: UpdatePayloadItem[];
 } => {
-  const toggled = toggleTimestampedChecklist(tsState, id, type, timestamp, nodes);
-  if (!toggled.nextTsState[id]?.value) {
-    return { nextTsState: toggled.nextTsState, nextOppositeTsState: oppositeTsState, updates: toggled.updates };
-  }
+  const isBack = type === 'back';
+  const back = isBack ? tsState : oppositeTsState;
+  const full = isBack ? oppositeTsState : tsState;
 
-  const cleared = clearTimestampedBranch(oppositeTsState, id, type === 'back' ? 'full' : 'back', timestamp, nodes);
+  const result = toggleCumulative(back, full, id, type, timestamp, nodes);
+
   return {
-    nextTsState: toggled.nextTsState,
-    nextOppositeTsState: cleared.updates.length ? cleared.nextTsState : oppositeTsState,
-    updates: [...toggled.updates, ...cleared.updates],
+    nextTsState: isBack ? result.nextBackTsState : result.nextFullTsState,
+    nextOppositeTsState: isBack ? result.nextFullTsState : result.nextBackTsState,
+    updates: result.updates,
   };
 };
 
