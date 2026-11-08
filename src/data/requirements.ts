@@ -144,7 +144,7 @@ export const functionalRequirements: RequirementNode[] = [
   item('rf-12', 'RF 12', 'Área de Doações', 'Configuração de Pix e transferência, sempre processados fora do aplicativo.', [
     item('rf-12-1', 'RF 12.1', 'Visão do missionário', 'Configura recebimentos e mensagem aos apoiadores.', [
       item('rf-12-1-1', 'RF 12.1.1', 'Mensagem aos apoiadores', 'Edita apelo ou agradecimento exibido no topo.'),
-      item('rf-12-1-2', 'RF 12.1.2', 'Métodos disponíveis', 'Pix simples ou transferência bancária, com campos e cópia de dados.'),
+      item('rf-12-1-2', 'RF 12.1.2', 'Métodos disponíveis', 'Pix simples (somente a chave, sem QR Code) ou transferência bancária, com campos e cópia de dados.'),
       item('rf-12-1-4', 'RF 12.1.4', 'Status da configuração', 'Indica método Ativo ou Pendente.'),
     ]),
     item('rf-12-2', 'RF 12.2', 'Visão do apoiador', 'Exibe mensagem e método configurado; pagamento ocorre fora do app.'),
